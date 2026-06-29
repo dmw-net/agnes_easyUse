@@ -1,5 +1,33 @@
-work/
-outputs/
+# Dependencies
+node_modules/
+
+# Nuxt / build output
+.nuxt/
+.output/
+dist/
+build/
+.vercel/
+.netlify/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment files
 .env
 .env.*
-*.log
+!.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Local tool state
+.workbuddy/
+
+# Accidental Windows device-name artifact
+/nul

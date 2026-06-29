@@ -1,0 +1,18 @@
+{
+  "currentStage": "03-value-proposition",
+  "completedStages": ["01-resource-audit", "02-niche-positioning"],
+  "skippedStages": [],
+  "userPreferences": {
+    "mode": "直通模式",
+    "explainTerms": false,
+    "familiarWithMethodology": false
+  },
+  "projectContext": {
+    "name": "AI Genesis",
+    "description": "集成Agnes的AI图片/视频生成工具，纯前端+Serverless，部署到Cloudflare Pages",
+    "status": "产品已开发完成，差盈利渠道",
+    "revenueIntent": "用户打赏",
+    "confirmedNiche": "电商卖家AI主图/详情页生成工具",
+    "targetUsers": "淘宝/拼多多/抖音小店个体卖家"
+  }
+}

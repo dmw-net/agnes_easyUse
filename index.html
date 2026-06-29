@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Genesis - AI图片视频生成平台</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header 导航栏 -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <div class="logo">AI Genesis</div>
+            <nav class="nav-menu">
+                <a href="#hero" class="nav-link active">图片生成</a>
+                <a href="#core-features" class="nav-link">视频生成</a>
+                <a href="#core-features" class="nav-link">提示词优化</a>
+            </nav>
+            <button class="cta-btn header-cta" onclick="scrollToSection('hero')">开始使用</button>
+        </div>
+    </header>
+
+    <!-- Hero 板块 -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">用AI创造无限可能<br>图片·视频·提示词优化</h1>
+            <p class="hero-subtitle">集成最新AI模型，无需后端部署，快速生成专业级图片和视频内容</p>
+            <button class="cta-btn hero-cta" onclick="scrollToSection('core-features')">开始生成</button>
+        </div>
+    </section>
+
+    <!-- 核心功能板块 -->
+    <section class="core-features" id="core-features">
+        <div class="container">
+            <!-- 功能1: 图片生成 -->
+            <div class="feature-card">
+                <h2 class="feature-title">AI图片生成</h2>
+                <p class="feature-desc">基于最新AI模型，支持文生图、图生图、风格转换等多种生成方式，快速创建专业级图像</p>
+                <div class="feature-placeholder img-placeholder"></div>
+            </div>
+
+            <!-- 功能2: 视频生成 -->
+            <div class="feature-card">
+                <h2 class="feature-title">AI视频生成</h2>
+                <p class="feature-desc">利用先进视频生成模型，将文字描述或图片转换为高质量视频内容</p>
+                <div class="feature-placeholder video-placeholder"></div>
+            </div>
+
+            <!-- 功能3: 提示词优化 -->
+            <div class="feature-card">
+                <h2 class="feature-title">AI提示词优化</h2>
+                <p class="feature-desc">智能优化您的提示词，提升AI生成质量，支持多种语言输入</p>
+                <div class="feature-placeholder prompt-placeholder"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 次要功能板块 -->
+    <section class="secondary-features">
+        <div class="container">
+            <h2 class="section-title">更多强大功能</h2>
+            <div class="features-grid">
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">API 访问</h3>
+                    <p class="sub-feature-desc">提供RESTful API接口，方便集成到现有系统</p>
+                </div>
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">批量生成</h3>
+                    <p class="sub-feature-desc">支持批量任务提交，一次生成多张图片或视频</p>
+                </div>
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">自定义模型</h3>
+                    <p class="sub-feature-desc">支持上传自定义模型，满足个性化需求</p>
+                </div>
+            </div>
+            <div class="features-grid">
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">历史记录</h3>
+                    <p class="sub-feature-desc">保存所有生成历史，方便查看和复用</p>
+                </div>
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">多格式导出</h3>
+                    <p class="sub-feature-desc">支持PNG、JPG、MP4、GIF等多种格式导出</p>
+                </div>
+                <div class="sub-feature-card">
+                    <h3 class="sub-feature-title">团队协作</h3>
+                    <p class="sub-feature-desc">支持团队共享和权限管理，提升协作效率</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 社会证明板块 -->
+    <section class="social-proof">
+        <div class="container">
+            <h2 class="section-title">受到用户信赖</h2>
+            <p class="section-subtitle">来自全球用户的真实反馈</p>
+        </div>
+    </section>
+
+    <!-- 定价板块 -->
+    <section class="pricing">
+        <div class="container">
+            <h2 class="section-title">简单透明的定价</h2>
+            <p class="section-subtitle">选择适合您的方案</p>
+        </div>
+    </section>
+
+    <!-- FAQ 板块 -->
+    <section class="faq" id="faq">
+        <div class="container">
+            <h2 class="section-title">常见问题</h2>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <h3 class="faq-question">Q: 是否需要安装后端服务？</h3>
+                    <p class="faq-answer">A: 不需要。本平台采用纯前端+Serverless架构，可直接部署到Cloudflare，无需管理后端服务器。</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-question">Q: 支持哪些AI模型？</h3>
+                    <p class="faq-answer">A: 支持主流的图片生成模型（如Stable Diffusion、DALL-E）和视频生成模型（如Sora、Gen-2）。</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-question">Q：生成的内容是否有版权？</h3>
+                    <p class="faq-answer">A：通过本平台生成的内容，其版权归用户所有，可用于商业项目。</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-question">Q：是否支持API调用？</h3>
+                    <p class="faq-answer">A：支持。我们提供完整的RESTful API文档，方便开发者集成到自己的应用中。</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-question">Q：如何部署到Cloudflare？</h3>
+                    <p class="faq-answer">A：只需将构建好的静态文件上传到Cloudflare Pages，无需配置服务器，按指引操作即可完成部署。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最终CTA板块 -->
+    <section class="final-cta">
+        <div class="container">
+            <h2 class="cta-title">准备好开始AI创作了吗？</h2>
+            <p class="cta-subtitle">免费开始，无需信用卡，即刻体验AI图片和视频生成</p>
+            <button class="cta-btn cta-final-btn" onclick="scrollToSection('hero')">免费开始使用</button>
+        </div>
+    </section>
+
+    <!-- Footer 板块 -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-logo">AI Genesis</div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">产品介绍</a>
+                    <a href="#" class="footer-link">使用文档</a>
+                    <a href="#" class="footer-link">联系我们</a>
+                </div>
+                <div class="copyright">© 2024 AI Genesis. 保留所有权利。</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
