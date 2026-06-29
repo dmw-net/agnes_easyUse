@@ -1,0 +1,5 @@
+work/
+outputs/
+.env
+.env.*
+*.log
