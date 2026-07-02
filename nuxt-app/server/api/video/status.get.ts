@@ -55,7 +55,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json()
-    console.log('[Video] Status:', data.status, '| Progress:', data.progress)
+    console.log('[Video] Status:', data.status, '| Progress:', data.progress, '| URL field:', data.remixed_from_video_id || '(none)')
 
     return {
       id:             data.id || '',
@@ -63,9 +63,9 @@ export default defineEventHandler(async (event) => {
       status:          data.status || 'unknown',
       progress:        data.progress || 0,
       seconds:         data.seconds || 0,
-      file_size:       data.file_size || data.size || '',   // 文件大小或分辨率
-      resolution:      data.size || '',                      // 分辨率如 1280x720
-      video_url:       data.video_url || data.url || null,   // 视频下载地址
+      file_size:       data.file_size || '',                  // 文件大小
+      resolution:      data.size || '',                       // 分辨率如 1280x768
+      video_url:       data.remixed_from_video_id || null,     // 视频下载地址（文档确认的字段名）
       error:           data.error || null
     }
 
