@@ -8,13 +8,20 @@
 
 ## 核心亮点
 
-- 完全免费：项目代码免费开源，不收取任何额外服务费。
+- **永久无限免费**：项目代码免费开源，不收取任何额外服务费，无会员、无限制、无绑定。
 - 集成 Agnes：已接入 Agnes 图片、视频和文本模型接口。
 - 可视化操作：用表单完成创作，不需要自己拼 API 参数。
 - 本地保存 Key：API Key 存在浏览器本地，也支持服务端环境变量。
 - 支持自部署：可以部署到自己的服务器、Vercel、Cloudflare Pages 或其他 Node/Nuxt 环境。
 - 中英文界面：内置 i18n，多语言切换。
 - 深浅色主题：支持浅色和深色模式。
+- 移动端适配：响应式布局，手机/平板均可正常使用。
+
+## 效果演示
+
+### AI 图片生成
+
+![AI 图片生成示例](docs/screenshot-image-gen.png)
 
 ## 已集成的 Agnes 功能
 
@@ -67,15 +74,17 @@
 
 ## 免费说明
 
-这个项目本身完全免费：
+本项目**永久无限免费**：
 
-- 不卖会员
-- 不收接口中转费
-- 不限制本地部署
-- 不绑定任何商业后台
-- 不上传你的 API Key 到作者服务器
+- ✅ 不卖会员、不限次数、不收任何费用
+- ✅ 不收接口中转费
+- ✅ 不限制本地部署
+- ✅ 不绑定任何商业后台
+- ✅ 不上传你的 API Key 到作者服务器（Key 仅存浏览器本地或服务端环境变量）
 
-但需要注意：Agnes API 本身可能需要你自己的账号额度或 API Key。项目只是一个免费客户端，实际模型调用仍由 Agnes API 提供。
+> 💡 你只需要提供自己的 Agnes API Key 即可使用。项目只是一个免费客户端，实际模型调用由 Agnes API 提供。
+>
+> 🔑 获取 API Key：[platform.agnes-ai.com/settings/apiKeys](https://platform.agnes-ai.com/settings/apiKeys)
 
 ## 快速开始
 
@@ -178,25 +187,16 @@ Star 不花钱，但对开源项目非常有帮助：
 
 ## 赞赏支持
 
-项目完全免费。如果它帮你节省了时间，或者你希望我继续维护、适配更多 Agnes 能力，可以随缘赞赏。
+☕ 项目**永久无限免费开源**。如果它帮你节省了时间、激发了创作灵感，或者单纯觉得好用，欢迎随缘赞赏。
 
-赞赏码图片请放到下面两个路径：
+每一份赞赏都会直接激励我继续维护、适配更多 Agnes 能力，以及优化用户体验。
 
-```text
-docs/sponsor-wechat.png
-docs/sponsor-alipay.png
-```
-
-当前仓库暂未附带真实收款码，避免误导或显示失效图片。添加图片后，可以把下面这段取消注释：
-
-```html
 <p align="center">
-  <img src="docs/sponsor-wechat.png" alt="微信赞赏码" width="220" />
-  <img src="docs/sponsor-alipay.png" alt="支付宝赞赏码" width="220" />
+  <img src="docs/sponsor-wechat.jpg" alt="微信赞赏" width="260" />&nbsp;&nbsp;
+  <img src="docs/sponsor-alipay.jpg" alt="支付宝赞赏" width="260" />
 </p>
-```
 
-没有赞赏也完全没关系，点个 Star 就已经很够意思了。
+没有赞赏也完全没关系，点个 Star 就已经很够意思了 💙
 
 ## 技术栈
 

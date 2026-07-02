@@ -12,7 +12,7 @@ export default {
     extend: {
       // 设计稿配色方案
       colors: {
-        'bg-primary': '#030014',
+        'bg-primary': '#050508',
         'bg-card': 'rgba(255, 255, 255, 0.02)',
         'text-primary': '#FFFFFF',
         'text-secondary': '#A0A0B0',

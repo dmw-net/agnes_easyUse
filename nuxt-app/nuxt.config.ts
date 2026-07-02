@@ -4,7 +4,7 @@ export default defineNuxtConfig({
   // 应用配置
   app: {
     head: {
-      title: 'AI Genesis - AI图片视频生成平台',
+      title: 'Agnes Easy Use - AI图片视频生成平台',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

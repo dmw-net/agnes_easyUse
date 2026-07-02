@@ -1,5 +1,5 @@
 {
-  "brand": "AI Genesis",
+  "brand": "Agnes Easy Use",
   "nav": {
     "home": "Home",
     "video": "Video Gen",
@@ -27,7 +27,8 @@
   "cta": "Get Started",
   "hero": {
     "title": "Unleash Infinite AI Creativity\nImages · Videos · Prompt Optimization",
-    "subtitle": "Powered by Sapiens AI Agnes models. Pure frontend + Serverless architecture for professional-grade image and video generation."
+    "subtitle": "Powered by Sapiens AI Agnes models. Pure frontend + Serverless architecture for professional-grade image and video generation.",
+    "freeBadge": "Permanently & Unlimited Free"
   },
   "imageGen": {
     "title": "AI Image Generation",
@@ -73,7 +74,10 @@
     "goToSettings": "Go to Settings →",
     "waitingForGeneration": "Waiting for generation...",
     "fillPromptAndClickGenerate": "Fill in the prompt and click Generate",
-    "apiKeyRequired": "Please configure Agnes API Key in Settings first"
+    "apiKeyRequired": "Please configure Agnes API Key in Settings first",
+    "goSettings": "Go to Settings",
+    "addUrlBtn": "Add URL",
+    "imageUrlPlaceholder": "Enter image URL"
   },
   "videoGen": {
     "title": "AI Video Generation",
@@ -90,8 +94,10 @@
     "keyframesLabel": "Keyframe Images (Multi/Keyframes Mode)",
     "dropImageHint": "Drag or click to upload reference image",
     "dropImagesHint": "Upload multiple reference images for video generation",
-    "durationLabel": "Video Duration",
-    "aspectLabel": "Aspect Ratio",
+    "resolutionLabel": "Resolution",
+    "framesLabel": "Total Frames (num_frames)",
+    "framesHint": "Must satisfy 8n+1, max 441",
+    "fpsLabel": "Frame Rate (FPS)",
     "negativeLabel": "Negative Prompt (Optional)",
     "negativePlaceholder": "Describe content to avoid, e.g.: blurry, distorted, watermark",
     "generateBtn": "Generate Video",
@@ -133,11 +139,27 @@
     "modelImage21": "Agnes Image 2.1 Flash",
     "modelVideo20": "Agnes Video V2.0"
   },
+  "sponsor": {
+    "title": "☕ Sponsor",
+    "desc": "This project is completely free and open source. If this tool saved you time, sparked creative ideas, or you simply find it useful, feel free to sponsor as you wish.",
+    "guide1": "Every sponsorship directly motivates me to keep maintaining, adapting more Agnes capabilities, and optimizing user experience.",
+    "guide2": "No matter the amount, every sponsor is the greatest recognition and encouragement to an open source author 💙",
+    "guide3": "No sponsorship is totally fine too — a Star is already more than enough.",
+    "wechatAlt": "WeChat Sponsor QR",
+    "alipayAlt": "Alipay Sponsor QR",
+    "wechatCard": "WeChat Sponsor",
+    "alipayCard": "Alipay Sponsor",
+    "hoverHint": "Hover to reveal QR code",
+    "comingSoon": "Sponsor QR codes coming soon ☕",
+    "thanks": "Thank you for your support!"
+  },
   "footer": {
     "product": "Product",
     "docs": "Documentation",
     "contact": "Contact",
-    "copyright": "© 2024 AI Genesis. All rights reserved."
+    "github": "GitHub Star",
+    "license": "License",
+    "copyright": "© 2026 Agnes Easy Use. All rights reserved."
   },
   "theme": {
     "light": "Light",

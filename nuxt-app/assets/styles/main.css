@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   深色模式表单控件适配
+   解决：select 下拉选项 / input / textarea
+   在 dark 模式下弹出层/光标/滚动条等原生样式问题
+   ============================================ */
+
+/* ---- 全局：dark 模式下的表单原生控件暗色渲染 ---- */
+.dark select,
+.dark input,
+.dark textarea {
+  color-scheme: dark;
+  -webkit-text-fill-color: initial;
+}
+
+/* ---- select 下拉框：深色背景 + 浅色文字 + 深色选项 ---- */
+.dark select {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark select option {
+  background-color: #1e1e2e;
+  color: #e0e0e0;
+}
+
+.dark select option:checked {
+  background-color: #2EA7FF;
+  color: #fff;
+}
+
+.dark select option:hover {
+  background-color: rgba(46, 167, 255, 0.15);
+}
+
+/* ---- input / textarea 深色模式微调 ---- */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ---- 数字输入框 spinner（上下箭头）---- */
+.dark input[type="number"]::-webkit-inner-spin-button,
+.dark input[type="number"]::-webkit-outer-spin-button {
+  filter: invert(1);
+}
+
+/* ---- focus 状态统一 ---- */
+.dark select:focus,
+.dark input:focus,
+.dark textarea:focus {
+  outline: none;
+  border-color: rgba(46, 167, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(46, 167, 255, 0.15);
+}

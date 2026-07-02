@@ -1,6 +1,6 @@
-# Nuxt 3 AI Genesis — TypeScript 报错修复总结
+# Nuxt 3 Agnes Easy Use — TypeScript 报错修复总结
 
-> **项目**: AI Genesis (Nuxt 3 + TailwindCSS + Agnes AI API)
+> **项目**: Agnes Easy Use (Nuxt 3 + TailwindCSS + Agnes AI API)
 > **日期**: 2026-06-27 ~ 2026-06-29
 > **环境**: Windows 11, Node.js 22.22.2 (managed), Nuxt 3.21.8
 
@@ -67,9 +67,9 @@ TS2694: Namespace 'globalNodeJS' has no exported member 'Timer'.
 **修复**:
 1. 安装依赖: `npm install --save-dev @types/node`
 2. `tsconfig.json` 添加 `"types": ["node"]`
-3. `pages/video.vue`: `NodeJS.Timer` → `ReturnType<typeof setInterval>`
+3. `pages/create.vue`: `NodeJS.Timer` → `ReturnType<typeof setInterval>`
 
-**关键文件**: `tsconfig.json`, `package.json`, `pages/video.vue`
+**关键文件**: `tsconfig.json`, `package.json`, `pages/create.vue`
 
 ---
 

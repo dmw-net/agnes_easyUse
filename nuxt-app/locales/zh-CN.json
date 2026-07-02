@@ -1,5 +1,5 @@
 {
-  "brand": "AI Genesis",
+  "brand": "Agnes Easy Use",
   "nav": {
     "home": "首页",
     "video": "视频生成",
@@ -27,7 +27,8 @@
   "cta": "开始使用",
   "hero": {
     "title": "用 AI 创造无限可能\n图片 · 视频 · 提示词优化",
-    "subtitle": "集成 Sapiens AI Agnes 模型，纯前端 + Serverless 架构，快速生成专业级图片和视频内容"
+    "subtitle": "集成 Sapiens AI Agnes 模型，纯前端 + Serverless 架构，快速生成专业级图片和视频内容",
+    "freeBadge": "永久无限免费"
   },
   "imageGen": {
     "title": "AI 图片生成",
@@ -73,7 +74,10 @@
     "goToSettings": "前往设置 →",
     "waitingForGeneration": "等待生成...",
     "fillPromptAndClickGenerate": "填写提示词并点击生成按钮",
-    "apiKeyRequired": "请先在设置页面配置 Agnes API Key"
+    "apiKeyRequired": "请先在设置页面配置 Agnes API Key",
+    "goSettings": "前往设置",
+    "addUrlBtn": "添加链接",
+    "imageUrlPlaceholder": "输入图片 URL"
   },
   "videoGen": {
     "title": "AI 视频生成",
@@ -90,8 +94,10 @@
     "keyframesLabel": "关键帧图片（多图/关键帧模式）",
     "dropImageHint": "拖拽或点击上传参考图片",
     "dropImagesHint": "上传多张参考图片，模型将据此生成视频",
-    "durationLabel": "视频时长",
-    "aspectLabel": "画面比例",
+    "resolutionLabel": "分辨率",
+    "framesLabel": "总帧数（num_frames）",
+    "framesHint": "需满足 8n+1，最大值 441",
+    "fpsLabel": "帧率（FPS）",
     "negativeLabel": "负向提示词（可选）",
     "negativePlaceholder": "描述需要避免的内容，例如：模糊、变形、水印",
     "generateBtn": "生成视频",
@@ -133,11 +139,27 @@
     "modelImage21": "Agnes Image 2.1 Flash",
     "modelVideo20": "Agnes Video V2.0"
   },
+  "sponsor": {
+    "title": "☕ 赞赏支持",
+    "desc": "项目完全免费开源。如果这个工具帮你节省了时间、激发了创作灵感，或者单纯觉得好用，欢迎随缘赞赏。",
+    "guide1": "每一份赞赏都会直接激励我继续维护、适配更多 Agnes 能力，以及优化用户体验。",
+    "guide2": "赞赏不论多少，都是对开源作者最大的认可和鼓励 💙",
+    "guide3": "没有赞赏也完全没关系，点个 Star 就已经很够意思了。",
+    "wechatAlt": "微信赞赏码",
+    "alipayAlt": "支付宝赞赏码",
+    "wechatCard": "微信赞赏",
+    "alipayCard": "支付宝赞赏",
+    "hoverHint": "悬停查看二维码",
+    "comingSoon": "赞赏码筹备中，敬请期待 ☕",
+    "thanks": "感谢你的支持！"
+  },
   "footer": {
     "product": "产品介绍",
     "docs": "使用文档",
     "contact": "联系我们",
-    "copyright": "© 2024 AI Genesis. 保留所有权利。"
+    "github": "GitHub Star",
+    "license": "许可证",
+    "copyright": "© 2026 Agnes Easy Use. 保留所有权利。"
   },
   "theme": {
     "light": "浅色",

@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Hero 区块 -->
-    <section class="relative pt-20 pb-30 px-8 overflow-hidden fade-in-up">
+    <section class="relative pt-12 pb-20 md:pt-20 md:pb-30 px-4 md:px-8 overflow-hidden fade-in-up">
       <!-- 高级视觉：浮动渐变光球 -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute w-[500px] h-[500px] rounded-full -top-32 -left-32 opacity-40 animate-blob" style="background: radial-gradient(circle, rgba(46,167,255,0.4), transparent 70%); filter: blur(60px);"></div>
@@ -11,13 +11,24 @@
 
       <div class="relative z-10 max-w-4xl mx-auto text-center pt-30">
         <h1
-          class="text-8xl font-bold leading-[96px] mb-12 text-gray-900 dark:text-white gradient-text"
+          class="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold leading-tight mb-6 md:mb-12 text-gray-900 dark:text-white gradient-text"
           style="font-family: 'Inter Tight', sans-serif; letter-spacing: -0.035em;"
           v-html="t('hero.title').replace(/\n/g, '<br>')"
         ></h1>
-        <p class="text-xl text-gray-500 dark:text-white/65 mb-12 leading-8">
+        <p class="text-base md:text-xl text-gray-500 dark:text-white/65 mb-6 md:mb-8 leading-7 md:leading-8">
           {{ t('hero.subtitle') }}
         </p>
+
+        <!-- 永久无限免费提示 -->
+        <div class="flex justify-center mb-8 md:mb-12">
+          <span
+            class="inline-block text-base md:text-lg lg:text-xl font-bold tracking-wide
+                   bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent"
+          >
+            {{ t('hero.freeBadge') }}
+          </span>
+        </div>
+
         <div class="flex gap-5 justify-center">
           <NuxtLink
             to="/create"
@@ -31,7 +42,7 @@
     </section>
 
     <!-- 功能特色 -->
-    <section class="px-8 py-[120px] border-t border-gray-200/50 dark:border-white/5 fade-in-up">
+    <section class="px-8 py-[120px] border-t border-gray-200/50 dark:border-white/3 fade-in-up">
       <div class="max-w-7xl mx-auto">
         <h2
           class="text-4xl font-semibold mb-4 text-gray-900 dark:text-white text-center"
@@ -43,23 +54,32 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <!-- 图片生成 -->
-          <div class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/5 bg-white/80 dark:bg-white/[0.02] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card">
+          <NuxtLink
+            to="/create"
+            class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card cursor-pointer hover:scale-[1.02] transform"
+          >
             <div class="text-4xl mb-4">🖼️</div>
-            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{{ t('features.imageGen') || 'AI 图片生成' }}</h3>
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white/90">{{ t('features.imageGen') || 'AI 图片生成' }}</h3>
             <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.imageGenDesc') || '基于 Agnes Image 2.0/2.1 Flash 模型，支持文生图、图生图、多图合成' }}</p>
-          </div>
+          </NuxtLink>
           <!-- 视频生成 -->
-          <div class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/5 bg-white/80 dark:bg-white/[0.02] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card">
+          <NuxtLink
+            to="/create?tab=video"
+            class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card cursor-pointer hover:scale-[1.02] transform"
+          >
             <div class="text-4xl mb-4">🎬</div>
-            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{{ t('features.videoGen') || 'AI 视频生成' }}</h3>
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white/90">{{ t('features.videoGen') || 'AI 视频生成' }}</h3>
             <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.videoGenDesc') || '基于 Agnes Video V2.0 模型，支持文生视频、图生视频、关键帧动画' }}</p>
-          </div>
+          </NuxtLink>
           <!-- 提示词优化 -->
-          <div class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/5 bg-white/80 dark:bg-white/[0.02] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card">
+          <NuxtLink
+            to="/create"
+            class="rounded-2xl p-8 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] hover:border-blue-400/30 transition backdrop-blur-xl text-center fade-in-up group group-card cursor-pointer hover:scale-[1.02] transform"
+          >
             <div class="text-4xl mb-4">✨</div>
-            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{{ t('features.promptOpt') || '提示词优化' }}</h3>
+            <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white/90">{{ t('features.promptOpt') || '提示词优化' }}</h3>
             <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.promptOptDesc') || '一键优化提示词，获得更好的 AI 生成效果' }}</p>
-          </div>
+          </NuxtLink>
         </div>
       </div>
     </section>
