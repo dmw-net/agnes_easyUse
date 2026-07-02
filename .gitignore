@@ -29,5 +29,8 @@ Thumbs.db
 # Local tool state
 .workbuddy/
 
+# Project docs (not for repo)
+docs/BUGS.md
+
 # Accidental Windows device-name artifact
 /nul

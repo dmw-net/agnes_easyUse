@@ -5,7 +5,8 @@
     "video": "Video Gen",
     "prompts": "Prompt Square",
     "create": "Create",
-    "settings": "Settings"
+    "settings": "Settings",
+    "feedback": "Feedback"
   },
   "create": {
     "title": "Creation Center",

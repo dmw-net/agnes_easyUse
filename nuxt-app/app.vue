@@ -34,14 +34,16 @@
             {{ isDark ? '🌙' : '☀️' }}
           </button>
 
-          <!-- CTA 按钮 -->
-          <button
-            @click="scrollToCreate"
+          <!-- 反馈建议按钮 -->
+          <a
+            href="https://github.com/dmw-net/agnes_easyUse/issues"
+            target="_blank"
+            rel="noopener"
             class="hidden sm:flex px-4 md:px-6 py-2 rounded-[99px] text-sm font-semibold text-white transition hover:opacity-90 ml-1 md:ml-2"
             style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
           >
-            {{ t('cta') }}
-          </button>
+            {{ t('nav.feedback') }}
+          </a>
 
           <!-- 移动端汉堡菜单按钮 -->
           <button
@@ -102,15 +104,17 @@
             >{{ t('nav.settings') }}</NuxtLink>
           </nav>
 
-          <!-- 菜单底部 CTA -->
+          <!-- 菜单底部 反馈建议 -->
           <div class="mt-auto pt-6 border-t border-gray-200/50 dark:border-white/5">
-            <button
-              @click="scrollToCreate(); mobileMenuOpen = false"
-              class="w-full px-6 py-3 rounded-[99px] text-sm font-semibold text-white transition"
+            <a
+              href="https://github.com/dmw-net/agnes_easyUse/issues"
+              target="_blank"
+              rel="noopener"
+              class="block w-full text-center px-6 py-3 rounded-[99px] text-sm font-semibold text-white transition hover:opacity-90"
               style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
             >
-              {{ t('cta') }}
-            </button>
+              {{ t('nav.feedback') }}
+            </a>
           </div>
         </div>
       </div>
@@ -139,7 +143,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { navigateTo } from '#app'
 
 // ========= i18n =========
 const { t, locale, setLocale } = useI18n()
@@ -162,13 +165,6 @@ const toggleTheme = () => {
 
 // ========= 移动端菜单 =========
 const mobileMenuOpen = ref(false)
-
-// ========= 跳转到创作页 =========
-const scrollToCreate = () => {
-  if (process.client) {
-    navigateTo('/create')
-  }
-}
 </script>
 
 <style scoped>

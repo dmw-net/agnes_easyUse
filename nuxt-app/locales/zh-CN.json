@@ -5,7 +5,8 @@
     "video": "视频生成",
     "prompts": "提示词广场",
     "create": "创作",
-    "settings": "设置"
+    "settings": "设置",
+    "feedback": "反馈建议"
   },
   "create": {
     "title": "创作中心",
