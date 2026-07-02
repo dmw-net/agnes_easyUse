@@ -176,6 +176,7 @@
   },
   "history": {
     "title": "生成历史",
+    "videoTitle": "视频历史记录",
     "empty": "暂无生成记录",
     "emptyDesc": "生成图片后，记录将在这里显示",
     "clearAll": "清空全部",

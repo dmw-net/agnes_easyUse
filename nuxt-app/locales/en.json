@@ -176,6 +176,7 @@
   },
   "history": {
     "title": "Generation History",
+    "videoTitle": "Video History",
     "empty": "No generation history yet",
     "emptyDesc": "Records will appear here after image generation",
     "clearAll": "Clear All",

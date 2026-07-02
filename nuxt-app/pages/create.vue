@@ -421,55 +421,117 @@
               <svg v-if="videoLoading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
               {{ videoLoading ? t('videoGen.generating') : t('videoGen.generateBtn') }}
             </button>
-
-            <!-- 轮询状态（紧凑行） -->
-            <div v-if="videoLoading" class="flex items-center justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <p class="text-xs text-gray-500 dark:text-white/40 mb-1.5 truncate">{{ t('videoGen.pollingStatus', { status: videoStatus, progress: videoProgress }) }}</p>
-                <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-500" :style="`width: ${videoProgress}%; background: linear-gradient(90deg, #2EA7FF, #9381FF);`"></div>
-                </div>
-              </div>
-              <button
-                @click="manualPollVideo"
-                class="shrink-0 px-3 py-1.5 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-400/5 rounded-lg border border-blue-400/20 transition cursor-pointer"
-              >
-                🔄 {{ t('videoGen.manualRefresh') || '刷新' }}
-              </button>
-            </div>
           </div>
 
           <!-- 右侧：结果区 -->
           <div class="lg:sticky lg:top-24 self-start">
-            <div class="rounded-2xl p-6 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] backdrop-blur-xl">
-              <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white/90">{{ t('videoGen.resultTitle') }}</h3>
-
-              <div v-if="videoLoading" class="text-center py-10">
-                <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-400 mb-3"></div>
-                <p class="text-gray-500 dark:text-white/40 text-sm">{{ t('videoGen.processing') }}</p>
+            <div class="rounded-2xl p-6 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] min-h-[400px] flex flex-col backdrop-blur-xl">
+              <!-- 标题栏 -->
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white/90">{{ t('videoGen.resultTitle') }}</h3>
+                <button v-if="videoResultUrl || videoError" @click="clearVideoResult" class="text-xs text-gray-400 dark:text-white/40 hover:text-red-500 dark:hover:text-red-400 transition">{{ t('imageGen.clearResult') || '清空' }}</button>
               </div>
 
-              <div v-else-if="videoError" class="text-center py-8">
-                <div class="text-red-400/90 text-sm bg-red-400/5 border border-red-400/20 rounded-xl p-4">⚠️ {{ videoError }}</div>
+              <!-- 空状态 -->
+              <div v-if="!videoLoading && !videoResultUrl && !videoError && !videoElapsed" class="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-white/30">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24" class="mb-3 opacity-40"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.91 13.672l-4.582-2.68a1 1 0 00-1.328 1.32l2.68 4.583m0 0L19.5 7.5M3 12h16.5"/></svg>
+                <p class="text-sm">{{ t('videoGen.emptyState') }}</p>
               </div>
 
-              <div v-else-if="videoResultUrl" class="space-y-4">
-                <video :src="videoResultUrl" controls class="w-full rounded-xl border border-gray-200 dark:border-white/5"></video>
+              <!-- 加载中：统一 spinner + 状态栏 + 刷新按钮 -->
+              <div v-if="videoLoading" class="flex-1 flex flex-col items-center justify-center">
+                <div class="relative w-16 h-16 mb-4">
+                  <div class="absolute inset-0 rounded-full border-4 border-blue-500/20"></div>
+                  <div class="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+                  <div class="absolute inset-2 flex items-center justify-center"><span class="text-xl">🎬</span></div>
+                </div>
+                <p class="text-gray-600 dark:text-white/70 font-medium text-sm">{{ t('videoGen.processing') }}</p>
+                <!-- 状态 + 进度条 + 刷新（紧凑行） -->
+                <div class="mt-4 w-full max-w-[280px]">
+                  <p class="text-xs text-gray-400 dark:text-white/40 mb-1.5 truncate text-center">{{ t('videoGen.pollingStatus', { status: videoStatus, progress: videoProgress }) }}</p>
+                  <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500" :style="`width: ${videoProgress}%; background: linear-gradient(90deg, #2EA7FF, #9381FF);`"></div>
+                  </div>
+                  <div class="flex justify-center mt-2">
+                    <button
+                      @click="manualPollVideo"
+                      class="px-3 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-400/5 rounded-lg border border-blue-400/20 transition cursor-pointer"
+                    >
+                      🔄 {{ t('videoGen.manualRefresh') || '刷新' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 错误状态 -->
+              <div v-if="videoError && !videoLoading" class="flex-1 flex flex-col items-center justify-center">
+                <div class="text-red-500 text-sm bg-red-500/10 border border-red-500/20 rounded-xl p-4 w-full">
+                  <div class="flex items-center gap-2 mb-1"><span>❌</span><span class="font-medium">{{ t('imageGen.errorOccurred') || '错误' }}</span></div>
+                  <p class="text-sm opacity-80">{{ videoError }}</p>
+                </div>
+                <p v-if="videoElapsed" class="text-xs text-gray-400 dark:text-white/30 mt-3">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
+              </div>
+
+              <!-- 完成有视频 -->
+              <div v-if="videoResultUrl && !videoLoading" class="flex-1 flex flex-col">
+                <!-- 耗时行（模仿图片样式：绿点+文字） -->
+                <div v-if="videoElapsed" class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/50 mb-3">
+                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span>{{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</span>
+                </div>
+                <div v-if="videoSeconds" class="flex items-center gap-2 text-xs text-gray-400 dark:text-white/40 mb-2">
+                  <span>📐</span><span>{{ t('videoGen.durationInfo', { seconds: videoSeconds, size: videoSize }) }}</span>
+                </div>
+                <video :src="videoResultUrl" controls class="w-full rounded-xl border border-gray-200 dark:border-white/5 mb-3"></video>
                 <a :href="videoResultUrl" target="_blank" download
-                  class="block w-full text-center py-2.5 rounded-xl text-sm font-medium bg-white/[0.06] hover:bg-white/[0.10] text-white/80 hover:text-white transition">⬇ {{ t('videoGen.downloadBtn') }}</a>
-                <p v-if="videoSeconds" class="text-center text-xs text-gray-400 dark:text-white/30">{{ t('videoGen.durationInfo', { seconds: videoSeconds, size: videoSize }) }}</p>
-                <p v-if="videoElapsed" class="text-center text-xs text-blue-400 dark:text-blue-300">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
+                  class="inline-block w-full text-center py-2.5 rounded-[99px] text-sm font-semibold text-white transition hover:opacity-90"
+                  style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);">⬇ {{ t('videoGen.downloadBtn') }}</a>
               </div>
 
-              <!-- 已完成但视频 URL 为空 -->
-              <div v-else-if="!videoLoading && !videoError" class="text-center py-8">
+              <!-- 完成但无视频 URL -->
+              <div v-if="!videoLoading && !videoError && !videoResultUrl && (videoElapsed)" class="flex-1 flex flex-col items-center justify-center">
                 <div class="inline-block mb-3 text-green-400 text-2xl">✅</div>
                 <p class="text-green-400/80 text-sm font-medium">{{ t('videoGen.completed') || '生成完成' }}</p>
-                <p v-if="videoElapsed" class="text-xs text-gray-400 dark:text-white/30 mt-2">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/50 mt-2">
+                  <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                  <span>{{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</span>
+                </div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              <div v-else class="text-center py-10">
-                <div class="text-gray-400 dark:text-white/20 text-sm">{{ t('videoGen.emptyState') }}</div>
+        <!-- 视频历史记录 -->
+        <div id="video-history" class="mt-16 pt-12 border-t border-gray-200/50 dark:border-white/3">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-semibold text-gray-900 dark:text-white/90">{{ t('history.videoTitle') || '视频历史记录' }}</h2>
+            <button v-if="videoHistory.length > 0" @click="onClearAllVideoHistory"
+              class="px-4 py-2 rounded-lg text-sm font-medium text-red-500 border border-red-500/30 hover:bg-red-500/10 transition">{{ t('history.clearAll') }}</button>
+          </div>
+          <div v-if="videoHistory.length === 0" class="text-center py-16 text-gray-400 dark:text-white/30">
+            <p class="text-base mb-1">{{ t('history.empty') || '暂无记录' }}</p>
+            <p class="text-sm">{{ t('history.emptyDesc') || '生成视频后记录会显示在这里' }}</p>
+          </div>
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div v-for="record in videoHistory" :key="record.id"
+              class="rounded-2xl p-5 border border-gray-200/50 dark:border-white/3 bg-white/80 dark:bg-white/[0.01] hover:border-purple-400/30 transition backdrop-blur-xl">
+              <div class="mb-3 rounded-xl overflow-hidden bg-gray-100 dark:bg-white/[0.01] h-40 flex items-center justify-center">
+                <div v-if="record.resultUrl" class="relative w-full h-full">
+                  <video :src="record.resultUrl" class="w-full h-full object-cover" preload="metadata"></video>
+                </div>
+                <div v-else class="text-gray-300 dark:text-white/20 text-3xl">🎬</div>
+              </div>
+              <p class="text-sm text-gray-700 dark:text-white/70 mb-2 overflow-hidden" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ record.prompt }}</p>
+              <div class="flex flex-wrap gap-2 mb-3">
+                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.resolution }}</span>
+                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.fps }} FPS</span>
+                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ t('history.time', { time: record.generationTime }) }}</span>
+              </div>
+              <p class="text-xs text-gray-400 dark:text-white/30 mb-3">{{ formatTime(record.timestamp) }}</p>
+              <div class="flex items-center gap-2">
+                <button v-if="record.resultUrl" @click="viewVideoHistory(record)" class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-blue-500/30 text-blue-500 dark:text-blue-400 hover:bg-blue-500/10 transition">{{ t('history.viewResult') }}</button>
+                <button @click="useVideoHistoryPrompt(record)" class="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-green-500/30 text-green-500 dark:text-green-400 hover:bg-green-500/10 transition">{{ t('history.usePrompt') }}</button>
+                <button @click="deleteVideoHistoryRecord(record.id)" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-500/10 transition">{{ t('history.delete') }}</button>
               </div>
             </div>
           </div>
@@ -985,6 +1047,7 @@ const generateVideo = async () => {
           // 计算耗时
           const sec = Math.floor((Date.now() - videoStartTime) / 1000)
           videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+          addVideoHistoryRecord()
           if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
         } else if (status.status === 'failed') {
           videoError.value = 'Video generation failed'
@@ -1047,10 +1110,73 @@ const manualPollVideo = async () => {
 }
 
 // ============================================================
+//  视频历史记录
+// ============================================================
+interface VideoHistoryRecord {
+  id: string; prompt: string; resolution: string; fps: number; duration: number;
+  resultUrl?: string; timestamp: number; generationTime: string
+}
+const VIDEO_HISTORY_KEY = 'ai-genesis-video-history'
+const videoHistory = ref<VideoHistoryRecord[]>([])
+
+const loadVideoHistory = () => {
+  try {
+    const stored = localStorage.getItem(VIDEO_HISTORY_KEY)
+    if (stored) videoHistory.value = JSON.parse(stored)
+  } catch (e) { console.error('[Video] Failed to load history:', e) }
+}
+const saveVideoHistory = () => {
+  try { localStorage.setItem(VIDEO_HISTORY_KEY, JSON.stringify(videoHistory.value)) } catch (e) { console.error(e) }
+}
+const addVideoHistoryRecord = () => {
+  const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+  const timeStr = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+  const newRecord: VideoHistoryRecord = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+    prompt: videoPrompt.value,
+    resolution: videoResolution.value,
+    fps: videoFrameRate.value,
+    duration: Math.round(actualNumFrames.value / (videoFrameRate.value || 24) * 10) / 10,
+    resultUrl: videoResultUrl.value || undefined,
+    timestamp: Date.now(),
+    generationTime: timeStr
+  }
+  videoHistory.value.unshift(newRecord)
+  if (videoHistory.value.length > 100) videoHistory.value = videoHistory.value.slice(0, 100)
+  saveVideoHistory()
+}
+const deleteVideoHistoryRecord = (id: string) => {
+  if (process.client && !confirm(t('history.deleteConfirm') || '确定要删除这条记录吗？')) return
+  videoHistory.value = videoHistory.value.filter(r => r.id !== id)
+  saveVideoHistory()
+}
+const onClearAllVideoHistory = () => {
+  if (process.client && !confirm(t('history.clearConfirm') || '确定要清空所有历史记录吗？此操作不可撤销。')) return
+  videoHistory.value = []
+  localStorage.removeItem(VIDEO_HISTORY_KEY)
+}
+const useVideoHistoryPrompt = (record: VideoHistoryRecord) => { activeTab.value = 'video'; videoPrompt.value = record.prompt }
+const viewVideoHistory = (record: VideoHistoryRecord) => {
+  if (record.resultUrl && process.client) window.open(record.resultUrl, '_blank')
+}
+
+// 清空视频结果
+const clearVideoResult = () => {
+  videoResultUrl.value = ''
+  videoError.value = ''
+  videoElapsed.value = ''
+  videoStatus.value = ''
+  videoProgress.value = 0
+  videoSeconds.value = 0
+  videoSize.value = ''
+}
+
+// ============================================================
 //  生命周期
 // ============================================================
 onMounted(() => {
   loadHistory()
+  loadVideoHistory()
   try {
     const stored = localStorage.getItem('ai-genesis-api-keys')
     if (stored) hasApiKey.value = !!JSON.parse(stored).agnes
