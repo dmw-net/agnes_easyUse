@@ -10,7 +10,7 @@
 export default defineEventHandler(async (event) => {
   // 读取请求体
   const body = await readBody(event)
-  const { prompt, apiKey: clientApiKey } = body
+  const { prompt, type = 'image', apiKey: clientApiKey } = body
 
   // 验证参数
   if (!prompt || prompt.trim().length === 0) {
@@ -34,33 +34,59 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // 根据类型生成不同的 system prompt
+    const isVideo = type === 'video'
+    const systemPrompt = isVideo
+      ? `You are a professional AI video generation prompt optimization expert. Your task is to optimize the user's simple description into a high-quality, detailed prompt for AI video generation.
+
+Optimization principles for video prompts:
+1. Add motion descriptions: camera movement (pan, tilt, dolly, orbit), character actions, object transformations
+2. Specify temporal elements: start state → action → end state, timing of key events
+3. Include visual details: lighting changes, color palette, atmosphere, weather
+4. Add cinematic quality terms: cinematic lighting, 4K, smooth motion, 24fps, professional videography
+5. Preserve the user's core intent without changing the main subject
+6. Structure: "Subject + Action/Motion + Camera Movement + Environment + Lighting/Mood + Quality Tags"
+7. For video, describe what happens OVER TIME, not just a static scene
+
+Output format:
+- Output the optimized prompt directly in English
+- Do NOT add explanations or prefixes
+- The prompt should be detailed, cinematic, and optimized for video generation models
+
+Example:
+Input: a cat walking on the beach
+Output: A fluffy orange cat walking slowly along a sunset beach, gentle waves lapping at paw prints, camera slowly dollying behind the cat, warm golden hour lighting, sea breeze ruffling fur, cinematic composition, smooth motion, 24fps, 4K, high detail`
+      : `You are a professional AI image generation prompt optimization expert. Your task is to optimize the user's simple description into a high-quality, detailed prompt for AI image generation.
+
+Optimization principles:
+1. Add visual details: lighting, materials, colors, composition, style
+2. Specify art style: photography, oil painting, watercolor, cyberpunk, anime, etc.
+3. Add quality terms: high definition, rich detail, professional photography, cinematic quality, etc.
+4. Structure: "Subject Description + Environment/Background + Art Style + Technical Parameters"
+5. Preserve the user's core intent without changing it
+6. Output in English for better AI understanding
+
+Output format:
+- Output the optimized prompt directly
+- Do NOT add explanations or prefixes
+- The prompt should be detailed, professional, and easy for AI to understand
+
+Example:
+Input: a cat sitting on the moon
+Output: A cute cat sitting on the crescent moon, fluffy fur, glowing eyes, starry night sky background, ethereal lighting, dreamy atmosphere, digital art, highly detailed, 8K resolution, cinematic composition, magical realism style`
     // 构建请求体（调用 Agnes 2.0 Flash 文本模型）
     const requestBody = {
       model: 'agnes-2.0-flash',
       messages: [
         {
           role: 'system',
-          content: `你是一位专业的 AI 绘画提示词优化专家。你的任务是将用户的简单描述优化为高质量、详细的 AI 绘画提示词。
-
-优化原则：
-1. 补充视觉细节：光照、材质、色彩、构图、风格
-2. 明确艺术风格：摄影、油画、水彩、赛博朋克、二次元等
-3. 添加质量词：高清、细节丰富、专业摄影、电影级画质等
-4. 结构化输出：按"主体描述 + 环境背景 + 艺术风格 + 技术参数"组织
-5. 保持原意：不改变用户的核心意图
-
-输出格式：
-- 直接输出优化后的提示词
-- 不要添加解释或前缀
-- 提示词应该详细、专业、易于 AI 理解
-
-示例：
-输入：一只坐在月亮上的猫
-输出：A cute cat sitting on the crescent moon, fluffy fur, glowing eyes, starry night sky background, ethereal lighting, dreamy atmosphere, digital art, highly detailed, 8K resolution, cinematic composition, magical realism style`
+          content: systemPrompt
         },
         {
           role: 'user',
-          content: `请优化以下 AI 绘画提示词：\n\n${prompt}`
+          content: isVideo
+            ? `Please optimize the following AI video generation prompt:\n\n${prompt}`
+            : `Please optimize the following AI image generation prompt:\n\n${prompt}`
         }
       ],
       temperature: 0.7,

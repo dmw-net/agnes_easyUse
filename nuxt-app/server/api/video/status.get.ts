@@ -62,9 +62,10 @@ export default defineEventHandler(async (event) => {
       video_id:        data.video_id || '',
       status:          data.status || 'unknown',
       progress:        data.progress || 0,
-      seconds:         data.seconds || '',
-      size:            data.size || '',
-      video_url:       data.remixed_from_video_id || null,
+      seconds:         data.seconds || 0,
+      file_size:       data.file_size || data.size || '',   // 文件大小或分辨率
+      resolution:      data.size || '',                      // 分辨率如 1280x720
+      video_url:       data.video_url || data.url || null,   // 视频下载地址
       error:           data.error || null
     }
 

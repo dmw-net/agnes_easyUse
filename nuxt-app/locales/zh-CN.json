@@ -108,9 +108,12 @@
     "resultTitle": "生成结果",
     "downloadBtn": "下载视频",
     "durationInfo": "时长：{seconds}秒 | 分辨率：{size}",
+    "elapsedInfo": "生成耗时：{time}",
     "emptyState": "填写描述并点击「生成视频」",
     "addUrlBtn": "添加",
-    "goSettings": "前往设置"
+    "goSettings": "前往设置",
+    "manualRefresh": "刷新状态",
+    "optimizeBtn": "优化提示词"
   },
   "settings": {
     "title": "API Key 设置",

@@ -108,9 +108,12 @@
     "resultTitle": "Generation Result",
     "downloadBtn": "Download Video",
     "durationInfo": "Duration: {seconds}s | Size: {size}",
+    "elapsedInfo": "Generation time: {time}",
     "emptyState": "Fill in the description and click 「Generate Video」",
     "addUrlBtn": "Add",
-    "goSettings": "Go to Settings"
+    "goSettings": "Go to Settings",
+    "manualRefresh": "Refresh Status",
+    "optimizeBtn": "Optimize Prompt"
   },
   "settings": {
     "title": "API Key Settings",

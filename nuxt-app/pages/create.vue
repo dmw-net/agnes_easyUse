@@ -298,9 +298,17 @@
             <!-- 提示词 -->
             <div>
               <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.promptLabel') }}</label>
-              <textarea v-model="videoPrompt" :placeholder="t('videoGen.promptPlaceholder')" :disabled="videoLoading"
-                class="w-full min-h-[90px] p-4 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-y bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/5 focus:border-blue-400 transition disabled:opacity-50"
-              ></textarea>
+              <div class="relative">
+                <textarea v-model="videoPrompt" :placeholder="t('videoGen.promptPlaceholder')" :disabled="videoLoading"
+                  class="w-full min-h-[90px] p-4 pr-20 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-y bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/5 focus:border-blue-400 transition disabled:opacity-50"
+                ></textarea>
+                <button @click="optimizeVideoPrompt" :disabled="videoOptimizing || !videoPrompt.trim() || videoLoading"
+                  :class="(videoOptimizing || !videoPrompt.trim() || videoLoading) ? 'opacity-30 cursor-not-allowed' : 'hover:bg-blue-500/20 hover:border-blue-500/50'"
+                  class="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-xs font-medium border border-blue-500/20 transition flex items-center gap-1 disabled:opacity-50"
+                  style="background: rgba(46,167,255,0.08);"
+                ><span v-if="videoOptimizing" class="animate-spin">⏳</span><span v-else>✨</span> {{ videoOptimizing ? (t('imageGen.optimizing') || '优化中...') : (t('videoGen.optimizeBtn') || '优化提示词') }}</button>
+              </div>
+              <p v-if="videoOptimizeSuccess" class="text-green-500 dark:text-green-400 text-xs mt-1">{{ t('imageGen.optimizeSuccess') || '提示词已优化' }}</p>
             </div>
 
             <!-- 图片上传 -->
@@ -420,6 +428,12 @@
               <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-500" :style="`width: ${videoProgress}%; background: linear-gradient(90deg, #2EA7FF, #9381FF);`"></div>
               </div>
+              <button
+                @click="manualPollVideo"
+                class="mt-3 text-xs text-blue-400 hover:text-blue-300 transition cursor-pointer"
+              >
+                🔄 {{ t('videoGen.manualRefresh') || '刷新状态' }}
+              </button>
             </div>
           </div>
 
@@ -442,6 +456,7 @@
                 <a :href="videoResultUrl" target="_blank" download
                   class="block w-full text-center py-2.5 rounded-xl text-sm font-medium bg-white/[0.06] hover:bg-white/[0.10] text-white/80 hover:text-white transition">⬇ {{ t('videoGen.downloadBtn') }}</a>
                 <p v-if="videoSeconds" class="text-center text-xs text-gray-400 dark:text-white/30">{{ t('videoGen.durationInfo', { seconds: videoSeconds, size: videoSize }) }}</p>
+                <p v-if="videoElapsed" class="text-center text-xs text-blue-400 dark:text-blue-300">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
               </div>
 
               <div v-else class="text-center py-10">
@@ -692,6 +707,34 @@ const optimizePrompt = async () => {
     optimizing.value = false
   }
 }
+
+// —— 优化视频提示词
+const optimizeVideoPrompt = async () => {
+  if (!videoPrompt.value.trim() || videoOptimizing.value) return
+  const apiKey = getStoredApiKey()
+  if (!apiKey) {
+    videoError.value = t('imageGen.apiKeyRequired') || '请先配置 API Key'
+    setTimeout(() => { videoError.value = '' }, 5000)
+    return
+  }
+  videoOptimizing.value = true
+  videoOptimizeSuccess.value = false
+  try {
+    const response = await $fetch<{ optimized_prompt: string }>('/api/optimize-prompt', {
+      method: 'POST',
+      body: { prompt: videoPrompt.value, type: 'video', apiKey }
+    })
+    videoPrompt.value = response.optimized_prompt
+    videoOptimizeSuccess.value = true
+    setTimeout(() => { videoOptimizeSuccess.value = false }, 3000)
+  } catch (error: any) {
+    videoError.value = error.data?.statusMessage || error.message || 'Optimization failed'
+    setTimeout(() => { videoError.value = '' }, 3000)
+  } finally {
+    videoOptimizing.value = false
+  }
+}
+
 const copyPrompt = async () => {
   try { await navigator.clipboard.writeText(imagePrompt.value) } catch (err) { console.error(err) }
 }
@@ -817,12 +860,19 @@ const actualDurationText = computed(() => {
 
 const videoNegative = ref('')
 const videoLoading = ref(false)
+const videoOptimizing = ref(false)       // 视频提示词优化中
+const videoOptimizeSuccess = ref(false)  // 视频提示词优化成功
 const videoResultUrl = ref('')
 const videoError = ref('')
 const videoStatus = ref('')
 const videoProgress = ref(0)
 const videoSeconds = ref(0)
 const videoSize = ref('')
+const videoElapsed = ref('')   // 生成耗时显示
+let currentVideoId = ''     // 供轮询和手动刷新共用
+let videoApiKey = ''        // 供轮询和手动刷新共用
+let videoStartTime = 0      // 生成开始时间戳
+let lastManualPoll = 0       // 手动刷新防抖时间戳
 const uploadedVideos = ref<Array<{ name: string; dataUrl: string }>>([])
 const videoImageUrl = ref('')
 const videoFileInput = ref<HTMLInputElement | null>(null)
@@ -867,11 +917,14 @@ const generateVideo = async () => {
     videoError.value = t('imageGen.apiKeyRequired') || '请先配置 API Key'
     return
   }
+  videoApiKey = apiKey
+  videoStartTime = Date.now()   // 记录开始时间
   videoLoading.value = true
   videoResultUrl.value = ''
   videoError.value = ''
   videoStatus.value = 'pending'
   videoProgress.value = 0
+  videoElapsed.value = ''         // 重置耗时显示
 
   try {
     // 解析分辨率
@@ -884,8 +937,8 @@ const generateVideo = async () => {
       prompt:     videoPrompt.value,
       width:      w,
       height:     h,
-      num_frames: actualNumFrames,
-      frame_rate:  videoFrameRate,
+      num_frames: actualNumFrames.value,
+      frame_rate:  videoFrameRate.value,
       negative_prompt: videoNegative.value || undefined,
       apiKey
     }
@@ -902,6 +955,7 @@ const generateVideo = async () => {
       body
     })
     const videoId = res.video_id
+    currentVideoId = videoId
     if (!videoId) throw new Error('No video_id returned')
 
     videoPollInterval = setInterval(async () => {
@@ -909,7 +963,7 @@ const generateVideo = async () => {
         const status = await $fetch<{
           status: string; progress?: number; video_url?: string
           seconds?: number; file_size?: string
-        }>('/api/video/status?video_id=' + videoId)
+        }>('/api/video/status?video_id=' + videoId + '&apiKey=' + encodeURIComponent(apiKey))
 
         videoStatus.value = status.status
         videoProgress.value = status.progress || 0
@@ -919,21 +973,67 @@ const generateVideo = async () => {
           videoSeconds.value = status.seconds || 0
           videoSize.value = status.file_size || ''
           videoLoading.value = false
+          // 计算耗时
+          const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+          videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
           if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
         } else if (status.status === 'failed') {
           videoError.value = 'Video generation failed'
           videoLoading.value = false
+          const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+          videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
           if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
         }
       } catch (err: any) {
         videoError.value = err.message || 'Polling failed'
         videoLoading.value = false
+        const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+        videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
         if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
       }
-    }, 3000)
+    }, 15000)
   } catch (error: any) {
     videoError.value = error.data?.statusMessage || error.message || 'Video generation failed'
     videoLoading.value = false
+    const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+    videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+  }
+}
+
+// 手动刷新视频状态（带 5 秒防抖）
+const manualPollVideo = async () => {
+  const now = Date.now()
+  if (now - lastManualPoll < 5000) return   // 5 秒内只允许一次
+  if (!videoApiKey || !currentVideoId) return
+  lastManualPoll = now
+
+  try {
+    const status = await $fetch<{
+      status: string; progress?: number; video_url?: string
+      seconds?: number; file_size?: string
+    }>('/api/video/status?video_id=' + currentVideoId + '&apiKey=' + encodeURIComponent(videoApiKey))
+
+    videoStatus.value = status.status
+    videoProgress.value = status.progress || 0
+
+    if (status.status === 'completed' && status.video_url) {
+      videoResultUrl.value = status.video_url
+      videoSeconds.value = status.seconds || 0
+      videoSize.value = status.file_size || ''
+      videoLoading.value = false
+      const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+      videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+      if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
+    } else if (status.status === 'failed') {
+      videoError.value = 'Video generation failed'
+      videoLoading.value = false
+      const sec = Math.floor((Date.now() - videoStartTime) / 1000)
+      videoElapsed.value = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+      if (videoPollInterval) { clearInterval(videoPollInterval); videoPollInterval = null }
+    }
+  } catch (err: any) {
+    // 防抖期间忽略网络错误，不覆盖视频错误提示
+    console.warn('[Video] Manual poll failed:', err.message)
   }
 }
 
