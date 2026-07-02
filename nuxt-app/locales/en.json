@@ -114,7 +114,13 @@
     "addUrlBtn": "Add",
     "goSettings": "Go to Settings",
     "manualRefresh": "Refresh Status",
-    "optimizeBtn": "Optimize Prompt"
+    "optimizeBtn": "Optimize Prompt",
+    "manualParseBtn": "Manual Parse Video URL",
+    "manualParsing": "Parsing...",
+    "manualInputPlaceholder": "Paste video URL (e.g. https://storage.googleapis.com/...)",
+    "forceLoadBtn": "Force Load This URL",
+    "manualInputToggle": "Can't parse? Manual input video URL →",
+    "parseFailed": "Video URL not found, please input manually"
   },
   "settings": {
     "title": "API Key Settings",

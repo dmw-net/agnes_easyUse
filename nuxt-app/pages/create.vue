@@ -488,13 +488,47 @@
                   style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);">⬇ {{ t('videoGen.downloadBtn') }}</a>
               </div>
 
-              <!-- 完成但无视频 URL -->
-              <div v-if="!videoLoading && !videoError && !videoResultUrl && (videoElapsed)" class="flex-1 flex flex-col items-center justify-center">
-                <div class="inline-block mb-3 text-green-400 text-2xl">✅</div>
+              <!-- 完成但无视频 URL（含手动解析入口） -->
+              <div v-if="!videoLoading && !videoError && !videoResultUrl && videoElapsed" class="flex-1 flex flex-col items-center justify-center gap-3">
+                <div class="inline-block mb-1 text-green-400 text-2xl">✅</div>
                 <p class="text-green-400/80 text-sm font-medium">{{ t('videoGen.completed') || '生成完成' }}</p>
-                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/50 mt-2">
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/50">
                   <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   <span>{{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</span>
+                </div>
+
+                <!-- 手动解析区域 -->
+                <div class="w-full max-w-[320px] mt-2 space-y-2">
+                  <!-- 手动解析按钮 -->
+                  <button
+                    v-if="currentVideoId"
+                    @click="manualParseVideoUrl"
+                    :disabled="manualParsing"
+                    class="w-full py-2 rounded-xl text-sm font-medium border border-green-400/30 text-green-400 hover:bg-green-400/5 transition disabled:opacity-50"
+                  >
+                    <span v-if="manualParsing" class="inline-block animate-spin mr-1">⟳</span>
+                    {{ manualParsing ? t('videoGen.manualParsing') : t('videoGen.manualParseBtn') }}
+                  </button>
+
+                  <!-- 手动输入 URL -->
+                  <div v-if="showManualUrlInput" class="space-y-2">
+                    <input
+                      v-model="manualVideoUrl"
+                      :placeholder="t('videoGen.manualInputPlaceholder')"
+                      class="w-full px-3 py-2 rounded-lg text-xs bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-blue-400/50"
+                    />
+                    <button
+                      @click="forceLoadVideoUrl"
+                      :disabled="!manualVideoUrl"
+                      class="w-full py-2 rounded-xl text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+                      style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
+                    >{{ t('videoGen.forceLoadBtn') }}</button>
+                  </div>
+                  <button
+                    v-if="!showManualUrlInput"
+                    @click="showManualUrlInput = true"
+                    class="w-full py-1.5 rounded-lg text-xs text-gray-400 hover:text-white/70 hover:bg-white/5 transition"
+                  >{{ t('videoGen.manualInputToggle') }} →</button>
                 </div>
               </div>
             </div>
@@ -940,10 +974,13 @@ const videoProgress = ref(0)
 const videoSeconds = ref(0)
 const videoSize = ref('')
 const videoElapsed = ref('')   // 生成耗时显示
-let currentVideoId = ''     // 供轮询和手动刷新共用
-let videoApiKey = ''        // 供轮询和手动刷新共用
+const currentVideoId = ref('') // 供轮询和手动刷新共用（改为 ref 保证模板响应式）
+const videoApiKey = ref('')   // 供轮询和手动刷新共用（改为 ref 保证模板响应式）
 let videoStartTime = 0      // 生成开始时间戳
 let lastManualPoll = 0       // 手动刷新防抖时间戳
+const manualParsing = ref(false)   // 手动解析 loading 状态
+const manualVideoUrl = ref('')   // 手动输入的视频 URL
+const showManualUrlInput = ref(false) // 是否显示手动输入区域
 const uploadedVideos = ref<Array<{ name: string; dataUrl: string }>>([])
 const videoImageUrl = ref('')
 const videoFileInput = ref<HTMLInputElement | null>(null)
@@ -988,7 +1025,7 @@ const generateVideo = async () => {
     videoError.value = t('imageGen.apiKeyRequired') || '请先配置 API Key'
     return
   }
-  videoApiKey = apiKey
+  videoApiKey.value = apiKey
   videoStartTime = Date.now()   // 记录开始时间
   videoLoading.value = true
   videoResultUrl.value = ''
@@ -1026,7 +1063,7 @@ const generateVideo = async () => {
       body
     })
     const videoId = res.video_id
-    currentVideoId = videoId
+    currentVideoId.value = videoId
     if (!videoId) throw new Error('No video_id returned')
 
     videoPollInterval = setInterval(async () => {
@@ -1076,14 +1113,14 @@ const generateVideo = async () => {
 const manualPollVideo = async () => {
   const now = Date.now()
   if (now - lastManualPoll < 5000) return   // 5 秒内只允许一次
-  if (!videoApiKey || !currentVideoId) return
+  if (!videoApiKey.value || !currentVideoId.value) return
   lastManualPoll = now
 
   try {
     const status = await $fetch<{
       status: string; progress?: number; video_url?: string
       seconds?: number; file_size?: string
-    }>('/api/video/status?video_id=' + currentVideoId + '&apiKey=' + encodeURIComponent(videoApiKey))
+    }>('/api/video/status?video_id=' + currentVideoId.value + '&apiKey=' + encodeURIComponent(videoApiKey.value))
 
     videoStatus.value = status.status
     videoProgress.value = status.progress || 0
@@ -1109,8 +1146,39 @@ const manualPollVideo = async () => {
   }
 }
 
-// ============================================================
-//  视频历史记录
+// 手动解析视频地址（强制重新拉取状态，打印完整响应）
+const manualParseVideoUrl = async () => {
+  if (!currentVideoId.value || !videoApiKey.value) return
+  manualParsing.value = true
+  try {
+    const raw = await $fetch<any>('/api/video/status?video_id=' + currentVideoId.value + '&apiKey=' + encodeURIComponent(videoApiKey.value))
+    console.log('[Video] 手动解析完整响应:', JSON.stringify(raw, null, 2))
+    // 尝试所有可能的字段名（文档确认字段名是 remixed_from_video_id）
+    const url = raw.remixed_from_video_id || raw.video_url || raw.url || ''
+    if (url) {
+      videoResultUrl.value = url
+      videoLoading.value = false
+      console.log('[Video] ✅ 手动解析成功，视频地址:', url)
+    } else {
+      console.warn('[Video] ⚠️ 响应中未找到视频地址，完整响应 above')
+      videoError.value = '未找到视频地址，请尝试手动输入'
+    }
+  } catch (err: any) {
+    console.error('[Video] 手动解析失败:', err)
+    videoError.value = '解析失败：' + (err.message || '未知错误')
+  } finally {
+    manualParsing.value = false
+  }
+}
+
+// 强制加载手动输入的视频地址
+const forceLoadVideoUrl = () => {
+  if (!manualVideoUrl.value) return
+  videoResultUrl.value = manualVideoUrl.value
+  videoLoading.value = false
+  videoError.value = ''
+  console.log('[Video] 强制加载视频地址:', manualVideoUrl.value)
+}
 // ============================================================
 interface VideoHistoryRecord {
   id: string; prompt: string; resolution: string; fps: number; duration: number;
