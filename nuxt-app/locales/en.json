@@ -109,6 +109,7 @@
     "downloadBtn": "Download Video",
     "durationInfo": "Duration: {seconds}s | Size: {size}",
     "elapsedInfo": "Generation time: {time}",
+    "completed": "Completed",
     "emptyState": "Fill in the description and click 「Generate Video」",
     "addUrlBtn": "Add",
     "goSettings": "Go to Settings",

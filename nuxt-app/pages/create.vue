@@ -422,17 +422,19 @@
               {{ videoLoading ? t('videoGen.generating') : t('videoGen.generateBtn') }}
             </button>
 
-            <!-- 轮询状态 -->
-            <div v-if="videoLoading" class="text-center">
-              <p class="text-sm text-gray-500 dark:text-white/40 mb-2">{{ t('videoGen.pollingStatus', { status: videoStatus, progress: videoProgress }) }}</p>
-              <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-500" :style="`width: ${videoProgress}%; background: linear-gradient(90deg, #2EA7FF, #9381FF);`"></div>
+            <!-- 轮询状态（紧凑行） -->
+            <div v-if="videoLoading" class="flex items-center justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs text-gray-500 dark:text-white/40 mb-1.5 truncate">{{ t('videoGen.pollingStatus', { status: videoStatus, progress: videoProgress }) }}</p>
+                <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-500" :style="`width: ${videoProgress}%; background: linear-gradient(90deg, #2EA7FF, #9381FF);`"></div>
+                </div>
               </div>
               <button
                 @click="manualPollVideo"
-                class="mt-3 text-xs text-blue-400 hover:text-blue-300 transition cursor-pointer"
+                class="shrink-0 px-3 py-1.5 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-400/5 rounded-lg border border-blue-400/20 transition cursor-pointer"
               >
-                🔄 {{ t('videoGen.manualRefresh') || '刷新状态' }}
+                🔄 {{ t('videoGen.manualRefresh') || '刷新' }}
               </button>
             </div>
           </div>
@@ -457,6 +459,13 @@
                   class="block w-full text-center py-2.5 rounded-xl text-sm font-medium bg-white/[0.06] hover:bg-white/[0.10] text-white/80 hover:text-white transition">⬇ {{ t('videoGen.downloadBtn') }}</a>
                 <p v-if="videoSeconds" class="text-center text-xs text-gray-400 dark:text-white/30">{{ t('videoGen.durationInfo', { seconds: videoSeconds, size: videoSize }) }}</p>
                 <p v-if="videoElapsed" class="text-center text-xs text-blue-400 dark:text-blue-300">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
+              </div>
+
+              <!-- 已完成但视频 URL 为空 -->
+              <div v-else-if="!videoLoading && !videoError" class="text-center py-8">
+                <div class="inline-block mb-3 text-green-400 text-2xl">✅</div>
+                <p class="text-green-400/80 text-sm font-medium">{{ t('videoGen.completed') || '生成完成' }}</p>
+                <p v-if="videoElapsed" class="text-xs text-gray-400 dark:text-white/30 mt-2">⏱ {{ t('videoGen.elapsedInfo', { time: videoElapsed }) }}</p>
               </div>
 
               <div v-else class="text-center py-10">
@@ -968,8 +977,8 @@ const generateVideo = async () => {
         videoStatus.value = status.status
         videoProgress.value = status.progress || 0
 
-        if (status.status === 'completed' && status.video_url) {
-          videoResultUrl.value = status.video_url
+        if (status.status === 'completed') {
+          videoResultUrl.value = status.video_url || ''
           videoSeconds.value = status.seconds || 0
           videoSize.value = status.file_size || ''
           videoLoading.value = false
@@ -1016,8 +1025,8 @@ const manualPollVideo = async () => {
     videoStatus.value = status.status
     videoProgress.value = status.progress || 0
 
-    if (status.status === 'completed' && status.video_url) {
-      videoResultUrl.value = status.video_url
+    if (status.status === 'completed') {
+      videoResultUrl.value = status.video_url || ''
       videoSeconds.value = status.seconds || 0
       videoSize.value = status.file_size || ''
       videoLoading.value = false

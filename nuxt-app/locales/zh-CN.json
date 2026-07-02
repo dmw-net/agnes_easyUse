@@ -109,6 +109,7 @@
     "downloadBtn": "下载视频",
     "durationInfo": "时长：{seconds}秒 | 分辨率：{size}",
     "elapsedInfo": "生成耗时：{time}",
+    "completed": "生成完成",
     "emptyState": "填写描述并点击「生成视频」",
     "addUrlBtn": "添加",
     "goSettings": "前往设置",
