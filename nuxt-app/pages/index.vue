@@ -1,3 +1,54 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+// i18n
+const { t } = useI18n()
+
+// 首页 SEO 配置
+useSeoMeta({
+  title: '免费 AI 图片视频生成平台',
+  description: 'Agnes Easy Use - 免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用',
+  ogTitle: 'Agnes Easy Use - 免费 AI 创作平台',
+  ogDescription: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用',
+  ogType: 'website',
+  ogUrl: 'https://agneseasyuse.2025521.xyz/',
+  twitterTitle: 'Agnes Easy Use - 免费 AI 创作平台',
+  twitterDescription: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用'
+})
+
+// 结构化数据
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: 'Agnes Easy Use',
+        description: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化',
+        url: 'https://agneseasyuse.2025521.xyz/'
+      })
+    }
+  ]
+})
+
+onMounted(() => {
+  if (process.client) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible')
+          }
+        })
+      },
+      { threshold: 0.1 }
+    )
+    document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el))
+  }
+})
+</script>
+
 <template>
   <div>
     <!-- Hero 区块 -->
@@ -85,26 +136,6 @@
     </section>
   </div>
 </template>
-
-<script setup lang="ts">
-const { t } = useI18n()
-
-onMounted(() => {
-  if (process.client) {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible')
-          }
-        })
-      },
-      { threshold: 0.1 }
-    )
-    document.querySelectorAll('.fade-in-up').forEach(el => observer.observe(el))
-  }
-})
-</script>
 
 <style>
 /* 浮动光球动画 */
@@ -203,3 +234,4 @@ input:focus, textarea:focus, select:focus {
   100% { background-position: 0% 50%; }
 }
 </style>
+

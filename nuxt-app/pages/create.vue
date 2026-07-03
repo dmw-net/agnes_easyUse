@@ -1,3 +1,4 @@
+
 <template>
   <div class="min-h-screen">
     <!-- 页面标题区 -->
@@ -576,6 +577,35 @@
 </template>
 
 <script setup lang="ts">
+// ========= SEO 配置 =========
+useSeoMeta({
+  title: 'AI 图片视频生成',
+  description: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频等多种创作方式',
+  ogTitle: 'AI 图片视频生成 - Agnes Easy Use',
+  ogDescription: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频等多种创作方式',
+  ogType: 'website',
+  ogUrl: 'https://agneseasyuse.2025521.xyz/create',
+  twitterTitle: 'AI 图片视频生成 - Agnes Easy Use',
+  twitterDescription: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频等多种创作方式'
+})
+
+// 结构化数据
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Agnes Easy Use - AI 创作工具',
+        description: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频',
+        url: 'https://agneseasyuse.2025521.xyz/create',
+        applicationCategory: 'MultimediaApplication'
+      })
+    }
+  ]
+})
+
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 

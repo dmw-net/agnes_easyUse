@@ -1,3 +1,4 @@
+
 <template>
   <div class="min-h-screen bg-white dark:bg-[#050508] text-gray-900 dark:text-white transition-colors duration-300 px-8 py-20">
     <div class="max-w-2xl mx-auto">
@@ -223,6 +224,34 @@
 </template>
 
 <script setup lang="ts">
+// ========= SEO 配置 =========
+useSeoMeta({
+  title: '设置 - API Key 配置',
+  description: '配置 Agnes API Key，管理您的 API 密钥，支持赞赏功能',
+  ogTitle: '设置 - Agnes Easy Use',
+  ogDescription: '配置 Agnes API Key，管理您的 API 密钥',
+  ogType: 'website',
+  ogUrl: 'https://agneseasyuse.2025521.xyz/settings',
+  twitterTitle: '设置 - Agnes Easy Use',
+  twitterDescription: '配置 Agnes API Key，管理您的 API 密钥'
+})
+
+// 结构化数据
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: '设置 - Agnes Easy Use',
+        description: '配置 Agnes API Key，管理您的 API 密钥',
+        url: 'https://agneseasyuse.2025521.xyz/settings'
+      })
+    }
+  ]
+})
+
 import { ref, computed, onMounted } from 'vue'
 import { useApiKey } from '~/composables/useApiKey'
 

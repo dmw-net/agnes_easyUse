@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://agneseasyuse.2025521.xyz/sitemap.xml
