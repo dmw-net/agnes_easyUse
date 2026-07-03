@@ -191,7 +191,7 @@ Star 不花钱，但对开源项目非常有帮助：
 
 每一份赞赏都会直接激励我继续维护、适配更多 Agnes 能力，以及优化用户体验。
 
-前往设置页赞赏 👉 [**agneseasyuse.2025521.xyz/settings#sponsor**](https://agneseasyuse.2025521.xyz/settings#sponsor)
+如果你愿意请我喝杯咖啡 ☕，[**点击此处**](https://agneseasyuse.2025521.xyz/settings#sponsor) 前往赞赏页
 
 没有赞赏也完全没关系，点个 Star 就已经很够意思了 💙
 
