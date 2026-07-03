@@ -40,29 +40,40 @@ export async function uploadBase64ToTmpfiles(base64Data: string): Promise<string
     Buffer.from(partFooter, 'utf8'),
   ])
 
-  const response = await fetch('https://tmpfiles.org/api/v1/upload', {
-    method: 'POST',
-    headers: {
-      'Content-Type': `multipart/form-data; boundary=${boundary}`,
-      'Content-Length': String(body.length),
-    },
-    body,
-  })
+  // 设置 30 秒超时
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 30000)
 
-  if (!response.ok) {
-    const text = await response.text().catch(() => 'unknown error')
-    throw new Error(`tmpfiles.org upload failed: ${response.status} ${text}`)
+  try {
+    const response = await fetch('https://tmpfiles.org/api/v1/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Content-Length': String(body.length),
+      },
+      body,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => 'unknown error')
+      throw new Error(`tmpfiles.org upload failed: ${response.status} ${text}`)
+    }
+
+    const result = await response.json()
+    // 返回格式: { status: "ok", data: { url: "https://tmpfiles.org/..." } }
+    const url = (result as any)?.data?.url
+    if (!url) {
+      throw new Error(`tmpfiles.org returned unexpected response: ${JSON.stringify(result)}`)
+    }
+
+    return url
+  } catch (err: any) {
+    clearTimeout(timeoutId)
+    if (err.name === 'AbortError') {
+      throw new Error('tmpfiles.org 上传超时（30秒）')
+    }
+    throw err
   }
-
-  const result = await response.json()
-  // 返回格式: { status: "ok", data: { url: "https://tmpfiles.org/..." } }
-  const url = (result as any)?.data?.url
-  if (!url) {
-    throw new Error(`tmpfiles.org returned unexpected response: ${JSON.stringify(result)}`)
-  }
-
-  // tmpfiles.org 返回的 URL 格式: https://tmpfiles.org/f/xxxxx
-  // 需要改成直链格式: https://tmpfiles.org/f/xxxxx (本身就是直链，但有时需要加 ?download)
-  // 实际测试：https://tmpfiles.org/f/xxxxx 可以直接访问图片
-  return url
 }

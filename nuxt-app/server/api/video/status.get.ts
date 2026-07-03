@@ -10,7 +10,6 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const { video_id, task_id, apiKey: clientApiKey } = query
 
-  // 优先使用 video_id（推荐方式）
   const id = video_id || task_id
 
   if (!id || typeof id !== 'string') {
@@ -20,29 +19,35 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // 获取 API Key
+  const config = useRuntimeConfig()
+  const apiKey = (clientApiKey as string) || config.agnesApiKey || process.env.AGNES_API_KEY
+
+  if (!apiKey) {
+    throw createError({
+      statusCode: 422,
+      statusMessage: 'API_KEY_MISSING',
+      data: { error: '请在设置页面配置 Agnes API Key' }
+    })
+  }
+
+  // 设置 15 秒超时（轮询接口应快速响应）
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 15000)
+
   try {
-    const config = useRuntimeConfig()
-    const apiKey = (clientApiKey as string) || config.agnesApiKey || process.env.AGNES_API_KEY
-
-    if (!apiKey) {
-      throw createError({
-        statusCode: 422,
-        statusMessage: 'API_KEY_MISSING',
-        data: { error: '请在设置页面配置 Agnes API Key' }
-      })
-    }
-
-    // 使用推荐方式：video_id 查询
     const url = `https://apihub.agnes-ai.com/agnesapi?video_id=${encodeURIComponent(id)}`
-    
+
     console.log('[Video] Polling status for:', id)
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${apiKey}`
-      }
+      },
+      signal: controller.signal
     })
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -63,18 +68,28 @@ export default defineEventHandler(async (event) => {
       status:          data.status || 'unknown',
       progress:        data.progress || 0,
       seconds:         data.seconds || 0,
-      file_size:       data.file_size || '',                  // 文件大小
-      resolution:      data.size || '',                       // 分辨率如 1280x768
-      video_url:       data.remixed_from_video_id || null,     // 视频下载地址（文档确认的字段名）
+      file_size:       data.file_size || '',
+      resolution:      data.size || '',
+      video_url:       data.remixed_from_video_id || null,
       error:           data.error || null
     }
 
   } catch (error: any) {
-    console.error('[Video] Poll error:', error)
+    clearTimeout(timeoutId)
+
+    if (error.name === 'AbortError') {
+      console.error('[Video] Poll timeout after 15s')
+      throw createError({
+        statusCode: 504,
+        statusMessage: '轮询超时，请稍后手动刷新'
+      })
+    }
+
+    console.error('[Video] Poll error:', error.message || error)
     if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || 'Internal server error'
+      statusMessage: error.message || '状态查询失败，请稍后重试'
     })
   }
 })

@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     prompt,
     model   = 'agnes-video-v2.0',
     image   = null,
-    images  = null,   // 兼容前端可能传 images（复数）
+    images  = null,
     mode    = null,
     height  = 768,
     width   = 1152,
@@ -29,7 +29,6 @@ export default defineEventHandler(async (event) => {
     apiKey: clientApiKey
   } = body
 
-  // 验证 prompt
   if (!prompt || !prompt.trim()) {
     throw createError({
       statusCode: 400,
@@ -37,76 +36,71 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  try {
-    // 获取 API Key
-    const config = useRuntimeConfig()
-    const apiKey = clientApiKey || config.agnesApiKey || process.env.AGNES_API_KEY
+  // 获取 API Key
+  const config = useRuntimeConfig()
+  const apiKey = clientApiKey || config.agnesApiKey || process.env.AGNES_API_KEY
 
-    if (!apiKey) {
+  if (!apiKey) {
+    throw createError({
+      statusCode: 422,
+      statusMessage: 'API_KEY_MISSING',
+      data: { error: '请在设置页面配置 Agnes API Key' }
+    })
+  }
+
+  // 图片处理：将 base64 数据上传到 tmpfiles.org 获取公网 URL
+  let publicImageUrls: string[] = []
+  const imageData = images || image
+  if (imageData) {
+    const base64List = Array.isArray(imageData) ? imageData : [imageData]
+    console.log(`[Video] Uploading ${base64List.length} image(s) to tmpfiles.org...`)
+    try {
+      publicImageUrls = await Promise.all(
+        base64List.map((b64: string) => uploadBase64ToTmpfiles(b64))
+      )
+      console.log('[Video] Images uploaded:', publicImageUrls)
+    } catch (uploadErr: any) {
+      console.error('[Video] Image upload failed:', uploadErr.message)
       throw createError({
-        statusCode: 422,
-        statusMessage: 'API_KEY_MISSING',
-        data: { error: '请在设置页面配置 Agnes API Key' }
+        statusCode: 400,
+        statusMessage: 'IMAGE_UPLOAD_FAILED',
+        data: { error: `图片上传失败：${uploadErr.message}` }
       })
     }
+  }
 
-    // —— 图片处理：将 base64 数据上传到 tmpfiles.org 获取公网 URL
-    let publicImageUrls: string[] = []
-    const imageData = images || image
-    if (imageData) {
-      const base64List = Array.isArray(imageData) ? imageData : [imageData]
-      console.log(`[Video] Uploading ${base64List.length} image(s) to tmpfiles.org...`)
-      try {
-        publicImageUrls = await Promise.all(
-          base64List.map((b64: string) => uploadBase64ToTmpfiles(b64))
-        )
-        console.log('[Video] Images uploaded:', publicImageUrls)
-      } catch (uploadErr: any) {
-        console.error('[Video] Image upload failed:', uploadErr.message)
-        throw createError({
-          statusCode: 400,
-          statusMessage: 'IMAGE_UPLOAD_FAILED',
-          data: { error: `图片上传失败：${uploadErr.message}` }
-        })
-      }
+  // 构建请求体
+  const requestBody: Record<string, any> = {
+    model,
+    prompt,
+    height,
+    width,
+    num_frames,
+    frame_rate
+  }
+
+  if (publicImageUrls.length === 1 && mode !== 'keyframes') {
+    requestBody.image = publicImageUrls[0]
+  } else if (publicImageUrls.length > 1 || mode === 'keyframes') {
+    requestBody.extra_body = { image: publicImageUrls }
+    if (mode === 'keyframes') {
+      requestBody.extra_body.mode = 'keyframes'
     }
+  }
 
-    // —— 构建请求体（严格遵循 Agnes Video V2.0 规范）
-    const requestBody: Record<string, any> = {
-      model,
-      prompt,
-      height,
-      width,
-      num_frames,
-      frame_rate
-    }
+  if (negative_prompt) {
+    requestBody.negative_prompt = negative_prompt
+  }
 
-    // —— 根据模式正确设置 image 字段
-    // text2video：不传 image
-    // image2video（单张）：image 字段直接放 URL（顶层）
-    // multi（多张）：extra_body.image 放 URL 数组（不设置 mode）
-    // keyframes（多张）：extra_body.image 放 URL 数组 + extra_body.mode = "keyframes"
-    if (publicImageUrls.length === 1 && mode !== 'keyframes') {
-      // 单张图片（图生视频）
-      requestBody.image = publicImageUrls[0]
-    } else if (publicImageUrls.length > 1 || mode === 'keyframes') {
-      // 多张图片或关键帧：放 extra_body
-      requestBody.extra_body = { image: publicImageUrls }
-      if (mode === 'keyframes') {
-        requestBody.extra_body.mode = 'keyframes'
-      }
-    }
+  if (seed !== null && seed !== '') {
+    requestBody.seed = Number(seed)
+  }
 
-    // 负向提示词
-    if (negative_prompt) {
-      requestBody.negative_prompt = negative_prompt
-    }
+  // 设置 60 秒超时
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 60000)
 
-    // 随机种子
-    if (seed !== null && seed !== '') {
-      requestBody.seed = Number(seed)
-    }
-
+  try {
     console.log('[Video] Creating task:', { model, width, height, num_frames, frame_rate })
 
     const response = await fetch('https://apihub.agnes-ai.com/v1/videos', {
@@ -115,8 +109,10 @@ export default defineEventHandler(async (event) => {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
     })
+    clearTimeout(timeoutId)
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -141,11 +137,21 @@ export default defineEventHandler(async (event) => {
     }
 
   } catch (error: any) {
-    console.error('[Video] Create task error:', error)
+    clearTimeout(timeoutId)
+
+    if (error.name === 'AbortError') {
+      console.error('[Video] Create task timeout after 60s')
+      throw createError({
+        statusCode: 504,
+        statusMessage: '请求超时，Agnes API 未在 60 秒内响应，请稍后重试'
+      })
+    }
+
+    console.error('[Video] Create task error:', error.message || error)
     if (error.statusCode) throw error
     throw createError({
       statusCode: 500,
-      statusMessage: error.message || 'Internal server error'
+      statusMessage: error.message || '视频任务创建失败，请稍后重试'
     })
   }
 })
