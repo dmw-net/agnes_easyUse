@@ -35,7 +35,9 @@ Thumbs.db
 
 # ========== Project docs (screenshots, local notes — not for repo) ==========
 docs/
-nul
+opc-doc/
+Agnes*.md
+Agnes*.MD
 
 # ========== nuxt-app 内部不应提交的文件 ==========
 nuxt-app/.nuxt/
