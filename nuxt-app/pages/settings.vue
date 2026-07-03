@@ -226,7 +226,7 @@
 <script setup lang="ts">
 // ========= SEO 配置 =========
 useSeoMeta({
-  title: '设置 - API Key 配置',
+  title: '设置',
   description: '配置 Agnes API Key，管理您的 API 密钥，支持赞赏功能',
   ogTitle: '设置 - Agnes Easy Use',
   ogDescription: '配置 Agnes API Key，管理您的 API 密钥',

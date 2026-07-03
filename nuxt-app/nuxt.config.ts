@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'Agnes Easy Use',
-      titleTemplate: '%s - AI 图片视频生成平台',
+      titleTemplate: '%s - Agnes Easy Use',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -15,15 +15,15 @@ export default defineNuxtConfig({
         { name: 'robots', content: 'index, follow' },
         // Open Graph
         { property: 'og:type', content: 'website' },
-        { property: 'og:title', content: 'Agnes Easy Use - AI 图片视频生成平台' },
-        { property: 'og:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化' },
+        { property: 'og:title', content: 'Agnes Easy Use - 免费AI创作平台' },
+        { property: 'og:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化，永久无限使用' },
         { property: 'og:url', content: 'https://agneseasyuse.2025521.xyz/' },
         { property: 'og:site_name', content: 'Agnes Easy Use' },
         { property: 'og:locale', content: 'zh_CN' },
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Agnes Easy Use - AI 图片视频生成平台' },
-        { name: 'twitter:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化' }
+        { name: 'twitter:title', content: 'Agnes Easy Use - 免费AI创作平台' },
+        { name: 'twitter:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化，永久无限使用' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },

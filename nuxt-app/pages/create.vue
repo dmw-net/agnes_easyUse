@@ -579,7 +579,7 @@
 <script setup lang="ts">
 // ========= SEO 配置 =========
 useSeoMeta({
-  title: 'AI 图片视频生成',
+  title: 'AI 创作中心',
   description: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频等多种创作方式',
   ogTitle: 'AI 图片视频生成 - Agnes Easy Use',
   ogDescription: '使用 AI 生成图片和视频，支持文生图、图生图、文生视频、图生视频等多种创作方式',
