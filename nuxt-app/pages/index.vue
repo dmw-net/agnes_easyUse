@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-
-// i18n
+// i18n（Nuxt 3 自动导入，无需手动 import）
 const { t } = useI18n()
 
 // 首页 SEO 配置

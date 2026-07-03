@@ -39,8 +39,20 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxt/image',
     '@nuxtjs/color-mode',
+    '@nuxtjs/i18n',
     '@nuxtjs/sitemap'
   ],
+
+  // ========== i18n 配置 (@nuxtjs/i18n v10) ==========
+  // locale 文件放在项目根目录的 i18n/ 文件夹下（模块默认读取位置）
+  i18n: {
+    locales: [
+      { code: 'en', file: 'en.json' },
+      { code: 'zh-CN', file: 'zh-CN.json' }
+    ],
+    defaultLocale: 'zh-CN',
+    strategy: 'no_prefix'
+  },
 
   // ========= Sitemap 配置 =========
   sitemap: {
