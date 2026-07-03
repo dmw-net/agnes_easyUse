@@ -23,7 +23,9 @@ export default defineNuxtConfig({
         // Twitter Card
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: 'Agnes Easy Use - 免费AI创作平台' },
-        { name: 'twitter:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化，永久无限使用' }
+        { name: 'twitter:description', content: '免费开源的 AI 创作工具，支持图片生成、视频生成和提示词优化，永久无限使用' },
+        // 百度站点验证
+        { name: 'baidu-site-verification', content: 'codeva-R3VtD9kAIf' }
       ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -86,9 +88,6 @@ export default defineNuxtConfig({
     preset: 'cloudflare-pages',
     build: {
       clean: false
-    },
-    output: {
-      dir: '.output'
     }
   },
 
