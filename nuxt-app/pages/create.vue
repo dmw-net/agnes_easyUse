@@ -588,6 +588,12 @@ type Tab = 'image' | 'video'
 type VideoMode = 'text2video' | 'image2video' | 'multi' | 'keyframes'
 
 const activeTab = ref<Tab>('image')
+const TAB_STORAGE_KEY = 'ai-genesis-active-tab'
+// Tab 持久化：切换时自动保存，刷新后恢复
+watch(activeTab, (val) => {
+  if (process.client) localStorage.setItem(TAB_STORAGE_KEY, val)
+})
+
 const tabs = computed<{ value: Tab; label: string; icon: string }[]>(() => [
   { value: 'image', label: t('create.imageTab') || '图片生成', icon: '🖼️' },
   { value: 'video', label: t('create.videoTab') || '视频生成', icon: '🎬' },
@@ -1182,7 +1188,7 @@ const forceLoadVideoUrl = () => {
 // ============================================================
 interface VideoHistoryRecord {
   id: string; prompt: string; resolution: string; fps: number; duration: number;
-  resultUrl?: string; timestamp: number; generationTime: string
+  resultUrl?: string; timestamp: number; generationTime: number
 }
 const VIDEO_HISTORY_KEY = 'ai-genesis-video-history'
 const videoHistory = ref<VideoHistoryRecord[]>([])
@@ -1190,7 +1196,26 @@ const videoHistory = ref<VideoHistoryRecord[]>([])
 const loadVideoHistory = () => {
   try {
     const stored = localStorage.getItem(VIDEO_HISTORY_KEY)
-    if (stored) videoHistory.value = JSON.parse(stored)
+    if (stored) {
+      const parsed = JSON.parse(stored) as VideoHistoryRecord[]
+      // 数据迁移：旧记录的 generationTime 可能是带单位的字符串（如 "2分12秒"），
+      // 统一转换为纯数字（秒），并清理 localStorage 中的旧格式数据
+      let migrated = false
+      const cleaned = parsed.map((r: any) => {
+        if (typeof r.generationTime === 'string') {
+          migrated = true
+          // 从 "2分12秒" 或 "2分12" 或 "132秒" 等格式中提取数字
+          const match = r.generationTime.match(/(\d+)\s*分\s*(\d+)\s*秒?/)
+          if (match) return { ...r, generationTime: Number(match[1]) * 60 + Number(match[2]) }
+          const secOnly = r.generationTime.match(/(\d+)\s*秒?/)
+          if (secOnly) return { ...r, generationTime: Number(secOnly[1]) }
+          return { ...r, generationTime: 0 }
+        }
+        return r
+      })
+      videoHistory.value = cleaned
+      if (migrated) saveVideoHistory() // 自动回写清洗后的数据
+    }
   } catch (e) { console.error('[Video] Failed to load history:', e) }
 }
 const saveVideoHistory = () => {
@@ -1198,7 +1223,7 @@ const saveVideoHistory = () => {
 }
 const addVideoHistoryRecord = () => {
   const sec = Math.floor((Date.now() - videoStartTime) / 1000)
-  const timeStr = sec >= 60 ? `${Math.floor(sec/60)}分${sec%60}秒` : `${sec}秒`
+  // 统一存为纯数字（秒），由 i18n history.time 统一格式化显示（避免单位重复）
   const newRecord: VideoHistoryRecord = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
     prompt: videoPrompt.value,
@@ -1207,7 +1232,7 @@ const addVideoHistoryRecord = () => {
     duration: Math.round(actualNumFrames.value / (videoFrameRate.value || 24) * 10) / 10,
     resultUrl: videoResultUrl.value || undefined,
     timestamp: Date.now(),
-    generationTime: timeStr
+    generationTime: sec
   }
   videoHistory.value.unshift(newRecord)
   if (videoHistory.value.length > 100) videoHistory.value = videoHistory.value.slice(0, 100)
@@ -1250,10 +1275,16 @@ onMounted(() => {
     if (stored) hasApiKey.value = !!JSON.parse(stored).agnes
   } catch (e) { hasApiKey.value = false }
 
-  // 根据 URL 参数切换 Tab（首页跳转过来时激活对应 Tab）
+  // 恢复 Tab：URL 参数优先，其次从 localStorage 读取（刷新页面后保持）
   const tab = route.query.tab as string
-  if (tab === 'video') activeTab.value = 'video'
-  if (tab === 'image') activeTab.value = 'image'
+  if (tab === 'video' || tab === 'image') {
+    activeTab.value = tab
+  } else {
+    try {
+      const saved = localStorage.getItem(TAB_STORAGE_KEY)
+      if (saved === 'video' || saved === 'image') activeTab.value = saved
+    } catch (e) { /* ignore */ }
+  }
 })
 
 onUnmounted(() => {
