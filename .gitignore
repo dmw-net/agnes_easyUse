@@ -1,7 +1,8 @@
-# Dependencies
+# ========== Dependencies ==========
 node_modules/
 
-# Nuxt / build output
+# ========== Nuxt build output ==========
+# 注意：.nuxt/ 是 dev 缓存，dist/ 是构建产物，均不应提交
 .nuxt/
 .output/
 dist/
@@ -9,7 +10,7 @@ build/
 .vercel/
 .netlify/
 
-# Logs
+# ========== Logs ==========
 logs/
 *.log
 npm-debug.log*
@@ -17,20 +18,27 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment files
+# ========== Environment / secrets ==========
 .env
 .env.*
 !.env.example
 
-# OS / editor noise
+# ========== OS / Editor noise ==========
 .DS_Store
 Thumbs.db
+.idea/
+*.swp
+*.swo
 
-# Local tool state
+# ========== Local tool state (WorkBuddy etc.) ==========
 .workbuddy/
 
-# Project docs (not for repo)
-docs/BUGS.md
+# ========== Project docs (screenshots, local notes — not for repo) ==========
+docs/
+nul
 
-# Accidental Windows device-name artifact
-/nul
+# ========== nuxt-app 内部不应提交的文件 ==========
+nuxt-app/.nuxt/
+nuxt-app/dist/
+nuxt-app/node_modules/
+nuxt-app/public/docs/
