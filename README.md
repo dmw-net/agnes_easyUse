@@ -23,6 +23,12 @@
 
 ![AI 图片生成示例](docs/screenshot-image-gen.png)
 
+## 立即体验
+
+不想本地部署？**直接在线体验** 👉 [**点击此处立即体验**](https://agneseasyuse.2025521.xyz/)
+
+填入你的 Agnes API Key 即可开始创作，无需安装任何依赖。
+
 ## 已集成的 Agnes 功能
 
 ### 图片生成
