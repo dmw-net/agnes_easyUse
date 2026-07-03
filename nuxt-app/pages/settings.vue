@@ -138,7 +138,7 @@
               <!-- 桌面端：hover 弹出层 -->
               <transition name="qr-pop">
                 <div
-                  v-if="wechatQrShow"
+                  v-show="wechatQrShow"
                   class="hidden md:block absolute left-0 right-0 mx-auto top-full mt-3 z-20 bg-white dark:bg-[#16162a] rounded-xl border border-green-400/30 p-6 shadow-2xl w-[320px]"
                 >
                   <img
@@ -166,7 +166,7 @@
               <!-- 桌面端：hover 弹出层 -->
               <transition name="qr-pop">
                 <div
-                  v-if="alipayQrShow"
+                  v-show="alipayQrShow"
                   class="hidden md:block absolute left-0 right-0 mx-auto top-full mt-3 z-20 bg-white dark:bg-[#16162a] rounded-xl border border-blue-400/30 p-6 shadow-2xl w-[320px]"
                 >
                   <img
@@ -217,6 +217,10 @@
               </div>
             </transition>
           </teleport>
+
+          <!-- 隐藏预加载：两张赞赏码图片常驻内存，避免 hover 时重复请求 -->
+          <img :src="sponsorWechatSrc" alt="" class="hidden" aria-hidden="true" loading="eager" />
+          <img :src="sponsorAlipaySrc" alt="" class="hidden" aria-hidden="true" loading="eager" />
         </div>
       </div>
     </div>
@@ -252,7 +256,6 @@ useHead({
   ]
 })
 
-import { ref, computed, onMounted } from 'vue'
 import { useApiKey } from '~/composables/useApiKey'
 
 const { t, locale } = useI18n()

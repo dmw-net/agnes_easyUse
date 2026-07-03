@@ -83,7 +83,13 @@ export default defineNuxtConfig({
 
   // 构建配置 (Cloudflare Pages)
   nitro: {
-    preset: 'cloudflare-pages'
+    preset: 'cloudflare-pages',
+    build: {
+      clean: false
+    },
+    output: {
+      dir: '.output'
+    }
   },
 
   typescript: {
