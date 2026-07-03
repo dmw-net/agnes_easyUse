@@ -191,10 +191,7 @@ Star 不花钱，但对开源项目非常有帮助：
 
 每一份赞赏都会直接激励我继续维护、适配更多 Agnes 能力，以及优化用户体验。
 
-<p align="center">
-  <img src="docs/sponsor-wechat.jpg" alt="微信赞赏" width="260" />&nbsp;&nbsp;
-  <img src="docs/sponsor-alipay.jpg" alt="支付宝赞赏" width="260" />
-</p>
+前往设置页赞赏 👉 [**agneseasyuse.2025521.xyz/settings#sponsor**](https://agneseasyuse.2025521.xyz/settings#sponsor)
 
 没有赞赏也完全没关系，点个 Star 就已经很够意思了 💙
 
