@@ -33,8 +33,10 @@ Thumbs.db
 # ========== Local tool state (WorkBuddy etc.) ==========
 .workbuddy/
 
-# ========== Project docs (screenshots, local notes — not for repo) ==========
-docs/
+# ========== Project docs ==========
+# docs/ 保留（README 引用了截图），只忽略赞助图
+docs/*sponsor*.jpg
+docs/*sponsor*.png
 opc-doc/
 Agnes*.md
 Agnes*.MD
