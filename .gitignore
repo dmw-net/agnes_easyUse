@@ -45,4 +45,4 @@ Agnes*.MD
 nuxt-app/.nuxt/
 nuxt-app/dist/
 nuxt-app/node_modules/
-nuxt-app/public/docs/
+# nuxt-app/public/docs/ 保留赞赏码图片（部署时使用，设置页引用）
