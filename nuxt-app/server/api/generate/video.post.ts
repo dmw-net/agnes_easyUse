@@ -10,8 +10,6 @@
  *   2. 服务端环境变量 AGNES_API_KEY
  */
 
-import { uploadBase64ToTmpfiles } from '../../utils/upload-image'
-
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const {
@@ -48,25 +46,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 图片处理：将 base64 数据上传到 tmpfiles.org 获取公网 URL
+  // 图片处理：直接以 base64 data URI 传给 Agnes（不再依赖外部图床）
+  // 原因：tmpfiles.org 链接生命周期短且连接不稳定，Agnes 服务端拉取时频繁出现
+  //       "Download image URL failed: Connection reset by peer"。
+  //       litellm / OpenAI 兼容接口原生支持 data URI，会内联解码、无需联网下载，
+  //       从而彻底消除外部图床导致的下载失败。
   let publicImageUrls: string[] = []
   const imageData = images || image
   if (imageData) {
     const base64List = Array.isArray(imageData) ? imageData : [imageData]
-    console.log(`[Video] Uploading ${base64List.length} image(s) to tmpfiles.org...`)
-    try {
-      publicImageUrls = await Promise.all(
-        base64List.map((b64: string) => uploadBase64ToTmpfiles(b64))
-      )
-      console.log('[Video] Images uploaded:', publicImageUrls)
-    } catch (uploadErr: any) {
-      console.error('[Video] Image upload failed:', uploadErr.message)
+    const validList = base64List.filter(
+      (b64: string) => typeof b64 === 'string' && /^data:image\/[\w+-]+;base64,/.test(b64)
+    )
+    if (validList.length !== base64List.length) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'IMAGE_UPLOAD_FAILED',
-        data: { error: `图片上传失败：${uploadErr.message}` }
+        statusMessage: 'INVALID_IMAGE_DATA',
+        data: { error: '图片数据格式不正确，应为 base64 图片（data:image/...;base64,）' }
       })
     }
+    publicImageUrls = validList
+    console.log(`[Video] Using ${publicImageUrls.length} inline base64 image(s), no external host needed`)
   }
 
   // 构建请求体
