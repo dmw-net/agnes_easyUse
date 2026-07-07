@@ -5,16 +5,16 @@ const { t } = useI18n()
 // 首页 SEO 配置
 useSeoMeta({
   title: '免费 AI 图片视频生成平台',
-  description: 'Agnes Easy Use - 免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用',
+  description: 'Agnes Easy Use - Agneseasyuse 免费开源 AI 创作平台，支持 AI 图片生成、视频生成与提示词优化，永久无限使用',
   ogTitle: 'Agnes Easy Use - 免费 AI 创作平台',
-  ogDescription: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用',
+  ogDescription: 'Agneseasyuse 免费开源 AI 创作平台，支持 AI 图片生成、视频生成与提示词优化，永久无限使用',
   ogType: 'website',
   ogUrl: 'https://agneseasyuse.2025521.xyz/',
   twitterTitle: 'Agnes Easy Use - 免费 AI 创作平台',
-  twitterDescription: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化，永久无限使用'
+  twitterDescription: 'Agneseasyuse 免费开源 AI 创作平台，支持 AI 图片生成、视频生成与提示词优化，永久无限使用'
 })
 
-// 结构化数据
+// 结构化数据（强化：声明品牌别名 + 组织 + 软件应用，帮助搜索引擎关联品牌词）
 useHead({
   script: [
     {
@@ -23,8 +23,39 @@ useHead({
         '@context': 'https://schema.org',
         '@type': 'WebSite',
         name: 'Agnes Easy Use',
-        description: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化',
-        url: 'https://agneseasyuse.2025521.xyz/'
+        alternateName: ['Agneseasyuse', 'AgnesEasyUse'],
+        url: 'https://agneseasyuse.2025521.xyz/',
+        description: '免费开源的 AI 创作平台，支持 AI 图片生成、视频生成与提示词优化',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: 'https://agneseasyuse.2025521.xyz/create?q={search_term_string}',
+          'query-input': 'required name=search_term_string'
+        }
+      })
+    },
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'Agnes Easy Use',
+        alternateName: ['Agneseasyuse', 'AgnesEasyUse'],
+        url: 'https://agneseasyuse.2025521.xyz/',
+        description: '免费开源 AI 创作平台，提供 AI 图片生成、AI 视频生成与提示词优化'
+      })
+    },
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Agnes Easy Use',
+        alternateName: ['Agneseasyuse', 'AgnesEasyUse'],
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'Web',
+        url: 'https://agneseasyuse.2025521.xyz/',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: '免费开源的 AI 创作工具，支持 AI 图片生成、视频生成和提示词优化'
       })
     }
   ]
@@ -132,6 +163,16 @@ onMounted(() => {
         </div>
       </div>
     </section>
+
+    <!-- 站点页脚（植入品牌词，强化 SEO 正文信号） -->
+    <footer class="px-8 py-12 border-t border-gray-200/60 dark:border-white/10 text-center fade-in-up">
+      <p class="text-sm text-gray-500 dark:text-white/50">
+        © 2026 <span class="font-semibold text-gray-700 dark:text-white/80">Agneseasyuse</span>（Agnes Easy Use）· 免费开源 AI 创作平台
+      </p>
+      <p class="text-xs text-gray-400 dark:text-white/30 mt-2">
+        AI 图片生成 · AI 视频生成 · 提示词优化 · 永久无限使用
+      </p>
+    </footer>
   </div>
 </template>
 

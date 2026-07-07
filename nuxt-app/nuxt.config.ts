@@ -4,13 +4,14 @@ export default defineNuxtConfig({
   // 应用配置
   app: {
     head: {
+      htmlAttrs: { lang: 'zh-CN' },
       title: 'Agnes Easy Use',
       titleTemplate: '%s - Agnes Easy Use',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: '集成 AI 图片生成、视频生成和提示词优化功能的现代化 Web 平台，免费开源，永久无限使用' },
-        { name: 'keywords', content: 'AI, 图片生成, 视频生成, Agnes, 提示词优化, 免费, 开源' },
+        { name: 'description', content: 'Agneseasyuse（Agnes Easy Use）是一个免费开源的 AI 创作平台，集成 AI 图片生成、视频生成与提示词优化，永久无限使用' },
+        { name: 'keywords', content: 'Agneseasyuse, Agnes Easy Use, AgnesEasyUse, AI 图片生成, AI 视频生成, 提示词优化, 免费开源' },
         { name: 'author', content: 'dmw-net' },
         { name: 'robots', content: 'index, follow' },
         // Open Graph
