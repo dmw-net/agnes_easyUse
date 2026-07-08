@@ -1,0 +1,14 @@
+# Cloudflare Pages 响应头配置
+# 参考: https://developers.cloudflare.com/pages/configuration/headers/
+
+# 首页与全站：RFC 8288 Link 头，指向有用资源（提升 AI Agent 可发现性）
+/
+  Link: </sitemap.xml>; rel="sitemap"
+  Link: </.well-known/api-catalog>; rel="api-catalog"
+  Link: </robots.txt>; rel="robots-txt"
+  X-Content-Type-Options: nosniff
+
+# API Catalog：声明正确的 Content-Type（RFC 9727 linkset+json）
+/.well-known/api-catalog
+  Content-Type: application/linkset+json
+  Cache-Control: public, max-age=3600

@@ -2,3 +2,7 @@ User-agent: *
 Allow: /
 
 Sitemap: https://agneseasyuse.2025521.xyz/sitemap.xml
+
+# AI 内容使用偏好声明（Content Signals, draft-romm-aipref-contentsignals）
+# 允许搜索引擎索引，禁止用于 AI 训练，禁止作为 AI 输入
+Content-Signal: ai-train=no, search=yes, ai-input=no

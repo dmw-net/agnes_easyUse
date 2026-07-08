@@ -1,0 +1,25 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://agneseasyuse.2025521.xyz/api/generate/image",
+      "rel": "service-doc",
+      "href": "https://agneseasyuse.2025521.xyz/create",
+      "type": "text/html",
+      "title": "AI 图片生成 API 文档"
+    },
+    {
+      "anchor": "https://agneseasyuse.2025521.xyz/api/generate/video",
+      "rel": "service-doc",
+      "href": "https://agneseasyuse.2025521.xyz/create?tab=video",
+      "type": "text/html",
+      "title": "AI 视频生成 API 文档"
+    },
+    {
+      "anchor": "https://agneseasyuse.2025521.xyz/api/optimize-prompt",
+      "rel": "service-doc",
+      "href": "https://agneseasyuse.2025521.xyz/create",
+      "type": "text/html",
+      "title": "提示词优化 API 文档"
+    }
+  ]
+}
