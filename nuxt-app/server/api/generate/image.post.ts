@@ -65,9 +65,12 @@ export default defineEventHandler(async (event) => {
     response_format: 'url'
   }
 
-  // 设置 60 秒超时
+  // 超时设置：Agnes 图片生成根据复杂度/尺寸/负载可能耗时几十秒甚至更久，
+  // 官方建议客户端超时为 60s–360s。此处设为 300s（5 分钟），避免长任务被误杀。
+  // 注意：Cloudflare Pages Functions 按 CPU 预算计时，纯 await 等待几乎不耗 CPU，
+  // 可安全长时间挂起等待响应，因此此处放大超时不会触达平台限制。
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 60000)
+  const timeoutId = setTimeout(() => controller.abort(), 300000)
 
   try {
     console.log('[Image] Calling Agnes API:', 'https://apihub.agnes-ai.com/v1/images/generations')
@@ -117,10 +120,10 @@ export default defineEventHandler(async (event) => {
     clearTimeout(timeoutId)
 
     if (error.name === 'AbortError') {
-      console.error('[Image] Request timeout after 60s')
+      console.error('[Image] Request timeout after 300s')
       throw createError({
         statusCode: 504,
-        statusMessage: '请求超时，Agnes API 未在 60 秒内响应，请稍后重试'
+        statusMessage: '图片生成超时（已超过 5 分钟），可能是提示词过于复杂或服务端负载较高，请尝试简化提示词后重试'
       })
     }
 
