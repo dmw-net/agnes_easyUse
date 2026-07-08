@@ -3,6 +3,10 @@
 export default defineNuxtConfig({
   // 应用配置
   app: {
+    // 网站图标（SVG，矢量无锯齿、无水印、文件极小）
+    icon: {
+      src: '/favicon.svg'
+    },
     head: {
       htmlAttrs: { lang: 'zh-CN' },
       title: 'Agnes Easy Use',
