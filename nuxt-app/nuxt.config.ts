@@ -3,9 +3,9 @@
 export default defineNuxtConfig({
   // 应用配置
   app: {
-    // 网站图标（SVG，矢量无锯齿、无水印、文件极小）
+    // 网站图标（AI 生成的图片，已压缩为多尺寸 PNG，无水印）
     icon: {
-      src: '/favicon.svg'
+      src: '/favicon.png'
     },
     head: {
       htmlAttrs: { lang: 'zh-CN' },
@@ -36,7 +36,8 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700&display=swap' },
-        { rel: 'canonical', href: 'https://agneseasyuse.2025521.xyz/' }
+        { rel: 'canonical', href: 'https://agneseasyuse.2025521.xyz/' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' }
       ]
     }
   },
