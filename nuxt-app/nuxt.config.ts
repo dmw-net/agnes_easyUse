@@ -3,10 +3,6 @@
 export default defineNuxtConfig({
   // 应用配置
   app: {
-    // 网站图标（AI 生成的图片，已压缩为多尺寸 PNG，无水印）
-    icon: {
-      src: '/favicon.png'
-    },
     head: {
       htmlAttrs: { lang: 'zh-CN' },
       title: 'Agnes Easy Use',
@@ -37,6 +33,8 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700&display=swap' },
         { rel: 'canonical', href: 'https://agneseasyuse.2025521.xyz/' },
+        { rel: 'icon', type: 'image/png', href: '/favicon.png', sizes: '128x128' },
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' }
       ]
     }
