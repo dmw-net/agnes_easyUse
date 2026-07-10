@@ -20,6 +20,10 @@ declare module '#app' {
 declare module '#imports' {
   export { useI18n } from '../composables/useLocale'
   export { useApiKey, ApiKeys } from '../composables/useApiKey'
+  /** @see https://nuxt.com/docs/api/composables/use-head */
+  export function useHead(head: any): void
+  /** @see https://nuxt.com/docs/api/composables/use-request-event */
+  export function useRequestEvent(): any
 }
 
 declare module '#app/nuxt' {

@@ -63,7 +63,7 @@ export default defineNuxtConfig({
   // ========= Sitemap 配置 =========
   sitemap: {
     hostname: 'https://agneseasyuse.2025521.xyz'
-  },
+  } as any,
 
   // ========== 主题切换 (color-mode) ==========
   colorMode: {
@@ -89,10 +89,7 @@ export default defineNuxtConfig({
 
   // 构建配置 (Cloudflare Pages)
   nitro: {
-    preset: 'cloudflare-pages',
-    build: {
-      clean: false
-    }
+    preset: 'cloudflare-pages'
   },
 
   typescript: {

@@ -167,10 +167,21 @@
   "footer": {
     "product": "Product",
     "docs": "Documentation",
-    "contact": "Contact",
+    "contact": "Feedback",
     "github": "GitHub Star",
     "license": "License",
-    "copyright": "© 2026 Agnes Easy Use. All rights reserved."
+    "copyright": "© 2026 Agnes Easy Use. All rights reserved.",
+    "tagline": "Agnes Easy Use is a free, open-source AI creation platform. Generate professional-grade images and videos entirely from a frontend-only architecture.",
+    "tagImage": "AI Image Gen",
+    "tagVideo": "AI Video Gen",
+    "tagPrompt": "Prompt Optimize",
+    "tagTheme": "Dark / Light Theme",
+    "columnProduct": "Product",
+    "columnCommunity": "Community",
+    "recommendTitle": "Recommendation",
+    "dmwName": "DMW Toolbox",
+    "dmwDescShort": "Free online developer tools (100+)",
+    "builtWith": "Built with Nuxt 3 & Vue 3 · Open-sourced by dmw"
   },
   "theme": {
     "light": "Light",

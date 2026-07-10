@@ -126,16 +126,57 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-50 dark:bg-[#050508] border-t border-gray-200/50 dark:border-white/5 py-12 md:py-20 px-4 md:px-20 transition-colors duration-300">
-      <div class="max-w-[1280px] mx-auto flex flex-col items-center gap-8 md:gap-12">
-        <div class="text-xl md:text-2xl font-bold font-heading tracking-tight">{{ t('brand') }}</div>
-        <div class="flex flex-wrap justify-center gap-6 md:gap-16">
-          <a href="https://github.com/dmw-net/agnes_easyUse" target="_blank" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.product') }}</a>
-          <a href="https://github.com/dmw-net/agnes_easyUse#readme" target="_blank" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.docs') }}</a>
-          <NuxtLink to="/settings#sponsor" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('sponsor.title') }}</NuxtLink>
-          <a href="https://github.com/dmw-net/agnes_easyUse" target="_blank" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.github') }}</a>
+    <footer class="bg-gray-50 dark:bg-[#050508] border-t border-gray-200/50 dark:border-white/5 pt-16 md:pt-20 pb-10 px-4 md:px-20 transition-colors duration-300">
+      <div class="max-w-[1280px] mx-auto">
+        <!-- 上排：品牌 + 导航 -->
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-10 md:gap-16">
+          <!-- 品牌区 -->
+          <div class="max-w-sm">
+            <div class="text-xl md:text-2xl font-bold font-heading tracking-tight">{{ t('brand') }}</div>
+            <p class="mt-3 text-sm leading-relaxed text-gray-500 dark:text-[rgba(255,255,255,0.45)]">{{ t('footer.tagline') }}</p>
+            <div class="flex flex-wrap gap-2 mt-5">
+              <span class="px-3 py-1 rounded-full text-xs text-gray-500 dark:text-[rgba(255,255,255,0.55)] bg-gray-100 dark:bg-white/5 transition-colors">{{ t('footer.tagImage') }}</span>
+              <span class="px-3 py-1 rounded-full text-xs text-gray-500 dark:text-[rgba(255,255,255,0.55)] bg-gray-100 dark:bg-white/5 transition-colors">{{ t('footer.tagVideo') }}</span>
+              <span class="px-3 py-1 rounded-full text-xs text-gray-500 dark:text-[rgba(255,255,255,0.55)] bg-gray-100 dark:bg-white/5 transition-colors">{{ t('footer.tagPrompt') }}</span>
+              <span class="px-3 py-1 rounded-full text-xs text-gray-500 dark:text-[rgba(255,255,255,0.55)] bg-gray-100 dark:bg-white/5 transition-colors">{{ t('footer.tagTheme') }}</span>
+            </div>
+          </div>
+
+          <!-- 导航链接区 -->
+          <div class="flex gap-12 sm:gap-16">
+            <div class="flex flex-col gap-3">
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90 mb-1">{{ t('footer.columnProduct') }}</div>
+              <a href="https://github.com/dmw-net/agnes_easyUse" target="_blank" rel="noopener" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.product') }}</a>
+              <a href="https://github.com/dmw-net/agnes_easyUse#readme" target="_blank" rel="noopener" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.docs') }}</a>
+              <NuxtLink to="/settings#sponsor" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('sponsor.title') }}</NuxtLink>
+            </div>
+            <div class="flex flex-col gap-3">
+              <div class="text-sm font-semibold text-gray-900 dark:text-white/90 mb-1">{{ t('footer.columnCommunity') }}</div>
+              <a href="https://github.com/dmw-net/agnes_easyUse" target="_blank" rel="noopener" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.github') }}</a>
+              <a href="https://github.com/dmw-net/agnes_easyUse/issues" target="_blank" rel="noopener" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.contact') }}</a>
+              <a href="https://github.com/dmw-net/agnes_easyUse/blob/main/LICENSE" target="_blank" rel="noopener" class="text-gray-400 dark:text-[rgba(255,255,255,0.65)] hover:text-gray-900 dark:hover:text-white transition text-sm">{{ t('footer.license') }}</a>
+            </div>
+          </div>
         </div>
-        <div class="text-gray-400 dark:text-[rgba(255,255,255,0.3)] text-xs mt-8 md:mt-12">{{ t('footer.copyright') }}</div>
+
+        <!-- 分隔线 -->
+        <div class="h-px bg-gray-200/60 dark:bg-white/5 my-8 md:my-10"></div>
+
+        <!-- 友情链接（轻量单行） -->
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+          <span class="text-gray-400 dark:text-[rgba(255,255,255,0.35)]">{{ t('footer.recommendTitle') }}</span>
+          <a href="https://tools.2025521.xyz/" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-gray-500 dark:text-[rgba(255,255,255,0.55)] hover:text-[#0052FF] dark:hover:text-[#4D7CFF] transition">
+            <span class="bg-gradient-to-r from-[#0052FF] to-[#4D7CFF] bg-clip-text text-transparent font-medium">{{ t('footer.dmwName') }}</span>
+            <span>— {{ t('footer.dmwDescShort') }}</span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <!-- 底部版权行（仅一次） -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-3">
+          <div class="text-gray-400 dark:text-[rgba(255,255,255,0.3)] text-xs">{{ t('footer.copyright') }}</div>
+          <div class="text-gray-400 dark:text-[rgba(255,255,255,0.3)] text-xs">{{ t('footer.builtWith') }}</div>
+        </div>
       </div>
     </footer>
   </div>
