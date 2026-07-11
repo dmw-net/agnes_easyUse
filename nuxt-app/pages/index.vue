@@ -167,10 +167,10 @@ onMounted(() => {
     <!-- 站点页脚（植入品牌词，强化 SEO 正文信号） -->
     <footer class="px-8 py-12 border-t border-gray-200/60 dark:border-white/10 text-center fade-in-up">
       <p class="text-sm text-gray-500 dark:text-white/50">
-        © 2026 <span class="font-semibold text-gray-700 dark:text-white/80">Agneseasyuse</span>（Agnes Easy Use）· 免费开源 AI 创作平台
+        {{ t('home.seoFooter.copyright') }}
       </p>
       <p class="text-xs text-gray-400 dark:text-white/30 mt-2">
-        AI 图片生成 · AI 视频生成 · 提示词优化 · 永久无限使用
+        {{ t('home.seoFooter.keywords') }}
       </p>
     </footer>
   </div>

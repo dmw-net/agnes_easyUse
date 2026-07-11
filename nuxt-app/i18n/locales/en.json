@@ -31,6 +31,12 @@
     "subtitle": "Powered by Sapiens AI Agnes models. Pure frontend + Serverless architecture for professional-grade image and video generation.",
     "freeBadge": "Permanently & Unlimited Free"
   },
+  "home": {
+    "seoFooter": {
+      "copyright": "© 2026 Agneseasyuse (Agnes Easy Use) · Free & Open-Source AI Creation Platform",
+      "keywords": "AI Image Generation · AI Video Generation · Prompt Optimization · Unlimited Forever"
+    }
+  },
   "imageGen": {
     "title": "AI Image Generation",
     "subtitle": "Based on Agnes Image 2.0/2.1 Flash models",

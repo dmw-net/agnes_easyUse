@@ -31,6 +31,12 @@
     "subtitle": "集成 Sapiens AI Agnes 模型，纯前端 + Serverless 架构，快速生成专业级图片和视频内容",
     "freeBadge": "永久无限免费"
   },
+  "home": {
+    "seoFooter": {
+      "copyright": "© 2026 Agneseasyuse（Agnes Easy Use）· 免费开源 AI 创作平台",
+      "keywords": "AI 图片生成 · AI 视频生成 · 提示词优化 · 永久无限使用"
+    }
+  },
   "imageGen": {
     "title": "AI 图片生成",
     "subtitle": "基于 Agnes Image 2.0/2.1 Flash 模型",
