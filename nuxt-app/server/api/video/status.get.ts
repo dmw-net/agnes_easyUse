@@ -6,6 +6,65 @@
  * Endpoint: https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>
  */
 
+// 从 Agnes 响应中稳健提取视频地址。
+// 不同版本/接口的字段名可能不同（remixed_from_video_id / video_url / url / output / ...），
+// 这里做多字段 + 嵌套 + 全文扫描兜底，避免某个字段名不匹配就彻底拿不到视频。
+function extractVideoUrl(data: any): string | null {
+  if (!data || typeof data !== 'object') return null
+
+  const candidates = [
+    'remixed_from_video_id',
+    'video_url',
+    'videoUrl',
+    'url',
+    'output_url',
+    'output',
+    'download_url',
+    'file_url',
+    'cdn_url',
+    'mp4_url',
+    'result_url',
+    'play_url',
+    'media_url'
+  ]
+  for (const key of candidates) {
+    const v = data[key]
+    if (typeof v === 'string' && /^https?:\/\//.test(v)) return v
+  }
+
+  // 嵌套结构：data.video.url / data.result.url / data.data.url / data.outputs[0].url
+  for (const outer of ['video', 'result', 'data', 'outputs', 'output']) {
+    const node = data[outer]
+    if (node && typeof node === 'object') {
+      const inner = extractVideoUrl(node)
+      if (inner) return inner
+    }
+  }
+
+  // 兜底：扫描整个响应体，取第一个看起来是视频的 URL
+  return scanFirstVideoUrl(data)
+}
+
+function scanFirstVideoUrl(data: any): string | null {
+  try {
+    const text = JSON.stringify(data)
+    // 1) 优先匹配媒体直链（.mp4/.mov/.webm/.m3u8）
+    const mediaRe = /https?:\/\/[^\s"'`}\\]+(?:\.mp4|\.mov|\.webm|\.m3u8)/i
+    const m = text.match(mediaRe)
+    if (m) return m[0]
+    // 2) 其次匹配包含视频/存储关键字的 URL
+    const kwRe = /https?:\/\/[^\s"'`}\\]*(?:videos?|agnes|googleapis|cloudfront|cdn|storage)[^\s"'`}\\]*/i
+    const m2 = text.match(kwRe)
+    if (m2) return m2[0]
+    // 3) 最后匹配任意 https URL
+    const any = text.match(/https?:\/\/[^\s"'`}\\]+/)
+    if (any) return any[0]
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const { video_id, task_id, apiKey: clientApiKey } = query
@@ -60,7 +119,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const data = await response.json()
-    console.log('[Video] Status:', data.status, '| Progress:', data.progress, '| URL field:', data.remixed_from_video_id || '(none)')
+    console.log('[Video] Raw Agnes status response:', JSON.stringify(data).slice(0, 2000))
+    console.log('[Video] Status:', data.status, '| Progress:', data.progress, '| Extracted URL:', extractVideoUrl(data) || '(none)')
 
     return {
       id:             data.id || '',
@@ -70,8 +130,11 @@ export default defineEventHandler(async (event) => {
       seconds:         data.seconds || 0,
       file_size:       data.file_size || '',
       resolution:      data.size || '',
-      video_url:       data.remixed_from_video_id || null,
-      error:           data.error || null
+      // 稳健提取视频地址：兼容 remixed_from_video_id / video_url / url / ... 多种字段
+      video_url:       extractVideoUrl(data),
+      error:           data.error || null,
+      // 透传原始响应，便于前端手动解析兜底与排错
+      raw:             data
     }
 
   } catch (error: any) {

@@ -417,7 +417,7 @@
             <!-- 生成按钮 -->
             <button @click="generateVideo" :disabled="!canGenerateVideo || videoLoading"
               class="w-full py-4 rounded-[99px] text-base font-semibold text-white transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              :style="!canGenerateVideo || videoLoading ? {} : 'background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);'"
+              style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
             >
               <svg v-if="videoLoading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
               {{ videoLoading ? t('videoGen.generating') : t('videoGen.generateBtn') }}
@@ -489,8 +489,9 @@
                   style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);">⬇ {{ t('videoGen.downloadBtn') }}</a>
               </div>
 
-              <!-- 完成但无视频 URL（含手动解析入口） -->
-              <div v-if="!videoLoading && !videoError && !videoResultUrl && videoElapsed" class="flex-1 flex flex-col items-center justify-center gap-3">
+              <!-- 完成但无视频 URL（含手动解析入口）。
+                   注意：不依赖 !videoError，使解析失败后手动输入入口仍可用 -->
+              <div v-if="!videoLoading && !videoResultUrl && videoElapsed" class="flex-1 flex flex-col items-center justify-center gap-3">
                 <div class="inline-block mb-1 text-green-400 text-2xl">✅</div>
                 <p class="text-green-400/80 text-sm font-medium">{{ t('videoGen.completed') || '生成完成' }}</p>
                 <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-white/50">
@@ -1182,6 +1183,38 @@ const manualPollVideo = async () => {
   }
 }
 
+// 客户端稳健提取视频地址（与 server 端逻辑对齐，用于手动解析兜底）。
+// 服务端已做稳健提取并透传 raw，这里再扫一遍以防服务端未覆盖的字段名。
+const extractVideoUrlClient = (data: any): string => {
+  if (!data || typeof data !== 'object') return ''
+  const candidates = [
+    'remixed_from_video_id', 'video_url', 'videoUrl', 'url', 'output_url',
+    'output', 'download_url', 'file_url', 'cdn_url', 'mp4_url', 'result_url',
+    'play_url', 'media_url'
+  ]
+  for (const key of candidates) {
+    const v = data[key]
+    if (typeof v === 'string' && /^https?:\/\//.test(v)) return v
+  }
+  // 嵌套结构
+  for (const outer of ['video', 'result', 'data', 'outputs', 'output']) {
+    const node = data[outer]
+    if (node && typeof node === 'object') {
+      const inner = extractVideoUrlClient(node)
+      if (inner) return inner
+    }
+  }
+  // 全文扫描第一个看起来像视频的 URL
+  try {
+    const text = JSON.stringify(data)
+    const m = text.match(/https?:\/\/[^\s"'`}\\]+(?:\.mp4|\.mov|\.webm|\.m3u8)/i)
+      || text.match(/https?:\/\/[^\s"'`}\\]*(?:videos?|agnes|googleapis|cloudfront|cdn|storage)[^\s"'`}\\]*/i)
+      || text.match(/https?:\/\/[^\s"'`}\\]+/)
+    if (m) return m[0]
+  } catch { /* ignore */ }
+  return ''
+}
+
 // 手动解析视频地址（强制重新拉取状态，打印完整响应）
 const manualParseVideoUrl = async () => {
   if (!currentVideoId.value || !videoApiKey.value) return
@@ -1189,15 +1222,18 @@ const manualParseVideoUrl = async () => {
   try {
     const raw = await $fetch<any>('/api/video/status?video_id=' + currentVideoId.value + '&apiKey=' + encodeURIComponent(videoApiKey.value))
     console.log('[Video] 手动解析完整响应:', JSON.stringify(raw, null, 2))
-    // 尝试所有可能的字段名（文档确认字段名是 remixed_from_video_id）
-    const url = raw.remixed_from_video_id || raw.video_url || raw.url || ''
+    // 1) 优先使用服务端已提取的 video_url
+    // 2) 否则扫描服务端透传的 raw 原始响应
+    const url = raw.video_url || extractVideoUrlClient(raw.raw || raw)
     if (url) {
       videoResultUrl.value = url
       videoLoading.value = false
+      videoError.value = ''
       console.log('[Video] ✅ 手动解析成功，视频地址:', url)
     } else {
-      console.warn('[Video] ⚠️ 响应中未找到视频地址，完整响应 above')
-      videoError.value = '未找到视频地址，请尝试手动输入'
+      console.warn('[Video] ⚠️ 响应中未找到视频地址，已打印完整响应到控制台')
+      // 保留错误提示，但不清空 videoElapsed，使下方手动输入入口仍可访问
+      videoError.value = '未找到视频地址，可尝试手动输入（完整响应见浏览器控制台）'
     }
   } catch (err: any) {
     console.error('[Video] 手动解析失败:', err)

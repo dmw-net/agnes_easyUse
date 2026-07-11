@@ -96,6 +96,8 @@
     "dropImageHint": "Drag or click to upload reference image",
     "dropImagesHint": "Upload multiple reference images for video generation",
     "resolutionLabel": "Resolution",
+    "durationLabel": "Duration",
+    "actualFrames": "Actual Frames",
     "framesLabel": "Total Frames (num_frames)",
     "framesHint": "Must satisfy 8n+1, max 441",
     "fpsLabel": "Frame Rate (FPS)",

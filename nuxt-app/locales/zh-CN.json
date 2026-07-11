@@ -96,6 +96,8 @@
     "dropImageHint": "拖拽或点击上传参考图片",
     "dropImagesHint": "上传多张参考图片，模型将据此生成视频",
     "resolutionLabel": "分辨率",
+    "durationLabel": "时长",
+    "actualFrames": "实际帧数",
     "framesLabel": "总帧数（num_frames）",
     "framesHint": "需满足 8n+1，最大值 441",
     "fpsLabel": "帧率（FPS）",
