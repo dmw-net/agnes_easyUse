@@ -1,22 +1,35 @@
 /**
- * 提示词优化 API - 使用 Agnes 2.0 Flash 文本模型
+ * 提示词优化 API - 使用 Agnes 2.0 Flash / 3.0 Flash 文本模型
  * 文档: D:/zb/Desktop/test/aiGenerate/Agnes 2.0 Flash.md
+ *       https://agnes-ai.com/zh-Hans/docs/agnes-30-flash
+ *
+ * 两个模型共用 OpenAI 兼容的 /v1/chat/completions 接口，仅模型名不同。
  *
  * API Key 来源优先级：
  *   1. 请求体中的 apiKey 字段（用户在设置页配置，从前端传入）
  *   2. 服务端环境变量 AGNES_API_KEY（部署时配置）
  */
 
+const ALLOWED_TEXT_MODELS = ['agnes-2.0-flash', 'agnes-3.0-flash']
+
 export default defineEventHandler(async (event) => {
   // 读取请求体
   const body = await readBody(event)
-  const { prompt, type = 'image', apiKey: clientApiKey } = body
+  const { prompt, type = 'image', model = 'agnes-2.0-flash', apiKey: clientApiKey } = body
 
   // 验证参数
   if (!prompt || prompt.trim().length === 0) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Prompt is required'
+    })
+  }
+
+  // 验证模型名称（2.0 / 3.0 Flash 均为文本模型，接口完全一致，仅名称不同）
+  if (!ALLOWED_TEXT_MODELS.includes(model)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Invalid model. Allowed models: ${ALLOWED_TEXT_MODELS.join(', ')}`
     })
   }
 
@@ -74,9 +87,9 @@ Example:
 Input: a cat sitting on the moon
 Output: A cute cat sitting on the crescent moon, fluffy fur, glowing eyes, starry night sky background, ethereal lighting, dreamy atmosphere, digital art, highly detailed, 8K resolution, cinematic composition, magical realism style`
 
-  // 构建请求体（调用 Agnes 2.0 Flash 文本模型）
+  // 构建请求体（调用 Agnes 文本模型）
   const requestBody = {
-    model: 'agnes-2.0-flash',
+    model,
     messages: [
       { role: 'system', content: systemPrompt },
       {
@@ -137,7 +150,7 @@ Output: A cute cat sitting on the crescent moon, fluffy fur, glowing eyes, starr
 
     return {
       optimized_prompt: optimizedPrompt,
-      model: 'agnes-2.0-flash',
+      model,
       usage: data.usage
     }
 

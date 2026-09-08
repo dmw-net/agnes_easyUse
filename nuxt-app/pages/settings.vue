@@ -332,8 +332,28 @@ const configuredModels = computed(() => [
     configured: !!agnesKey.value
   },
   {
+    label: t('settings.modelImage25'),
+    name: 'agnes-image-2.5-flash',
+    configured: !!agnesKey.value
+  },
+  {
     label: t('settings.modelVideo20'),
     name: 'agnes-video-v2.0',
+    configured: !!agnesKey.value
+  },
+  {
+    label: t('settings.modelVideo25'),
+    name: 'agnes-video-2.5-flash',
+    configured: !!agnesKey.value
+  },
+  {
+    label: t('settings.modelText20'),
+    name: 'agnes-2.0-flash',
+    configured: !!agnesKey.value
+  },
+  {
+    label: t('settings.modelText30'),
+    name: 'agnes-3.0-flash',
     configured: !!agnesKey.value
   }
 ])

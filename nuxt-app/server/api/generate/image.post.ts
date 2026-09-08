@@ -1,7 +1,8 @@
 /**
- * 图片生成 API - 使用 Agnes Image 2.0/2.1 Flash
+ * 图片生成 API - 使用 Agnes Image 2.0/2.1/2.5 Flash
  * 文档: D:/zb/Desktop/test/aiGenerate/Agnes Image 2.0 Flash.md
  *        D:/zb/Desktop/test/aiGenerate/Agnes Image 2.1 Flash.md
+ *        https://agnes-ai.com/zh-Hans/docs/agnes-image-25-flash
  *
  * API Key 来源优先级：
  *   1. 请求体中的 apiKey 字段（用户在设置页配置，从前端传入）
@@ -29,7 +30,7 @@ export default defineEventHandler(async (event) => {
   }
 
   // 验证模型名称
-  const allowedModels = ['agnes-image-2.0-flash', 'agnes-image-2.1-flash']
+  const allowedModels = ['agnes-image-2.0-flash', 'agnes-image-2.1-flash', 'agnes-image-2.5-flash']
   if (!allowedModels.includes(model)) {
     throw createError({
       statusCode: 400,
@@ -57,12 +58,20 @@ export default defineEventHandler(async (event) => {
     size
   }
 
-  if (image && Array.isArray(image) && image.length > 0) {
-    requestBody.image = image
-  }
-
+  // 输入图片（图生图 / 多图合成）的字段位置按模型区分：
+  //   - 2.0 Flash：顶层 image 数组
+  //   - 2.5 Flash：extra_body.image 数组（官方文档明确要求，放顶层会被忽略）
+  //   - 2.1 Flash：沿用项目既有行为（顶层 image），避免改动已验证的链路
   requestBody.extra_body = {
     response_format: 'url'
+  }
+
+  if (image && Array.isArray(image) && image.length > 0) {
+    if (model === 'agnes-image-2.5-flash') {
+      requestBody.extra_body.image = image
+    } else {
+      requestBody.image = image
+    }
   }
 
   // 超时设置：Agnes 图片生成根据复杂度/尺寸/负载可能耗时几十秒甚至更久，

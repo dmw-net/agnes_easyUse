@@ -1,9 +1,15 @@
 /**
  * 视频任务状态查询 - 推荐方式（使用 video_id）
- * GET /api/video/status?video_id=xxx
+ * GET /api/video/status?video_id=xxx&model_name=agnes-video-2.5-flash
  *
  * 文档: D:/zb/Desktop/test/aiGenerate/Agnes Video V2.0.md
- * Endpoint: https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>
+ *       https://agnes-ai.com/zh-Hans/docs/agnes-video-25-flash
+ * Endpoint: https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>[&model_name=<MODEL>]
+ *
+ * model_name 说明：
+ *   - agnes-video-2.5-flash 的 keyframe / reference 模式必须携带 model_name，
+ *     否则查询不到任务；text 模式可省略。
+ *   - agnes-video-v2.0 不携带该参数。
  */
 
 // 从 Agnes 响应中稳健提取视频地址。
@@ -67,7 +73,7 @@ function scanFirstVideoUrl(data: any): string | null {
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const { video_id, task_id, apiKey: clientApiKey } = query
+  const { video_id, task_id, model_name, apiKey: clientApiKey } = query
 
   const id = video_id || task_id
 
@@ -95,9 +101,13 @@ export default defineEventHandler(async (event) => {
   const timeoutId = setTimeout(() => controller.abort(), 15000)
 
   try {
-    const url = `https://apihub.agnes-ai.com/agnesapi?video_id=${encodeURIComponent(id)}`
+    const params = new URLSearchParams({ video_id: id })
+    if (model_name && typeof model_name === 'string' && model_name.trim()) {
+      params.set('model_name', model_name.trim())
+    }
+    const url = `https://apihub.agnes-ai.com/agnesapi?${params.toString()}`
 
-    console.log('[Video] Polling status for:', id)
+    console.log('[Video] Polling status for:', id, params.get('model_name') ? `(model_name=${params.get('model_name')})` : '')
 
     const response = await fetch(url, {
       method: 'GET',

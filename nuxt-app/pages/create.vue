@@ -16,7 +16,7 @@
 
     <!-- Tab 切换 -->
     <section class="px-4 md:px-8 pb-6 md:pb-8">
-      <div class="max-w-7xl mx-auto">
+      <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3">
         <div class="flex gap-2 p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.02] border border-gray-200/50 dark:border-white/3 w-fit overflow-x-auto md:overflow-visible -webkit-overflow-scrolling-touch">
           <button
             v-for="tab in tabs"
@@ -35,6 +35,12 @@
             {{ tab.label }}
           </button>
         </div>
+
+        <!-- 提示词优化所用的文本模型（图片/视频两个 Tab 共用） -->
+        <div class="flex items-center gap-2 ml-auto w-[260px] shrink-0">
+          <span class="text-xs text-gray-500 dark:text-white/40 whitespace-nowrap">{{ t('create.textModelLabel') || '优化模型' }}</span>
+          <AppSelect v-model="textModel" :options="textModelOptions" />
+        </div>
       </div>
     </section>
 
@@ -50,29 +56,21 @@
             <!-- 模型选择 -->
             <div>
               <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('imageGen.model') }}</label>
-              <div class="flex gap-3">
+              <div class="flex gap-3 flex-wrap">
                 <button
-                  @click="onModelChange('agnes-image-2.0-flash')"
+                  v-for="m in imageModelOptions"
+                  :key="m.value"
+                  @click="onModelChange(m.value)"
                   :disabled="imageLoading"
                   :class="[
                     'px-5 py-2.5 rounded-xl text-sm font-semibold transition border-2 disabled:opacity-50 disabled:cursor-not-allowed',
-                    imageModel === 'agnes-image-2.0-flash'
+                    imageModel === m.value
                       ? 'border-blue-400 bg-blue-500/10 text-blue-400'
                       : 'border-transparent bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/10'
                   ]"
-                >{{ t('imageGen.model20') }}</button>
-                <button
-                  @click="onModelChange('agnes-image-2.1-flash')"
-                  :disabled="imageLoading"
-                  :class="[
-                    'px-5 py-2.5 rounded-xl text-sm font-semibold transition border-2 disabled:opacity-50 disabled:cursor-not-allowed',
-                    imageModel === 'agnes-image-2.1-flash'
-                      ? 'border-blue-400 bg-blue-500/10 text-blue-400'
-                      : 'border-transparent bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/10'
-                  ]"
-                >{{ t('imageGen.model21') }}</button>
+                >{{ m.label }}</button>
               </div>
-              <p class="text-xs text-gray-400 dark:text-white/40 mt-2">{{ imageModel === 'agnes-image-2.0-flash' ? t('imageGen.desc20') : t('imageGen.desc21') }}</p>
+              <p class="text-xs text-gray-400 dark:text-white/40 mt-2">{{ currentImageModel?.desc }}</p>
             </div>
 
             <!-- 生成模式 -->
@@ -81,7 +79,7 @@
               <div class="flex gap-3">
                 <button @click="genMode = 'text2img'" :disabled="imageLoading" :class="modeBtnClass('text2img')">{{ t('imageGen.modeText2Img') }}</button>
                 <button @click="genMode = 'image2img'" :disabled="imageLoading" :class="modeBtnClass('image2img')">{{ t('imageGen.modeImage2Img') }}</button>
-                <button v-if="imageModel === 'agnes-image-2.0-flash'" @click="genMode = 'multiimg'" :disabled="imageLoading" :class="modeBtnClass('multiimg')">{{ t('imageGen.modeMultiImg') }}</button>
+                <button v-if="currentImageModel?.supportsMulti" @click="genMode = 'multiimg'" :disabled="imageLoading" :class="modeBtnClass('multiimg')">{{ t('imageGen.modeMultiImg') }}</button>
               </div>
             </div>
 
@@ -283,6 +281,26 @@
               </div>
             </div>
 
+            <!-- 视频模型选择 -->
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.modelLabel') }}</label>
+              <div class="flex gap-3 flex-wrap">
+                <button
+                  v-for="m in videoModelOptions"
+                  :key="m.value"
+                  @click="videoModel = m.value"
+                  :disabled="videoLoading"
+                  :class="[
+                    'px-5 py-2.5 rounded-xl text-sm font-semibold transition border-2 disabled:opacity-50 disabled:cursor-not-allowed',
+                    videoModel === m.value
+                      ? 'border-blue-400 bg-blue-500/10 text-blue-400'
+                      : 'border-transparent bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/10'
+                  ]"
+                >{{ m.label }}</button>
+              </div>
+              <p class="text-xs text-gray-400 dark:text-white/40 mt-2">{{ currentVideoModel?.desc }}</p>
+            </div>
+
             <!-- 生成模式 -->
             <div>
               <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.modeLabel') }}</label>
@@ -294,6 +312,7 @@
                   :style="videoMode === m.value ? 'background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);' : ''"
                 >{{ m.label }}</button>
               </div>
+              <p v-if="isVideo25" class="text-xs text-gray-400 dark:text-white/40 mt-2">{{ t('videoGen.modeHint25') }}</p>
             </div>
 
             <!-- 提示词 -->
@@ -338,8 +357,14 @@
 
             <!-- 视频参数 -->
             <div class="grid grid-cols-1 gap-4">
-              <!-- 分辨率选择 -->
-              <div>
+              <!-- 2.5 Flash：固定 720P，仅选画幅比例 -->
+              <div v-if="isVideo25">
+                <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.aspectRatioLabel') }}</label>
+                <AppSelect v-model="videoAspectRatio" :options="videoAspectRatioOptions" :disabled="videoLoading" />
+                <p class="text-xs text-gray-400 dark:text-white/40 mt-1">{{ t('videoGen.resolutionFixed') }}</p>
+              </div>
+              <!-- v2.0：分辨率档位 -->
+              <div v-else>
                 <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.resolutionLabel') || '分辨率' }}</label>
                 <AppSelect v-model="videoResolution" :options="videoResolutionOptions" :disabled="videoLoading" />
               </div>
@@ -377,7 +402,7 @@
                   v-if="videoDurationIsCustom"
                   v-model.number="videoDurationCustom"
                   type="number"
-                  :min="1"
+                  :min="isVideo25 ? 4 : 1"
                   :max="videoMaxDuration"
                   :disabled="videoLoading"
                   class="w-20 px-2 py-2 rounded-xl text-sm text-center text-gray-900 dark:text-white bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/5 focus:outline-none focus:border-blue-400 transition disabled:opacity-50"
@@ -386,29 +411,30 @@
               </div>
               <!-- 自定义模式：时长超限提示 -->
               <p v-if="videoDurationIsCustom && videoDurationCustom && videoDurationCustom > videoMaxDuration" class="text-xs text-red-500 dark:text-red-400 mt-1">
-                当前帧率下最长支持 {{ videoMaxDuration }} 秒（{{ actualNumFrames }} 帧）
+                当前{{ isVideo25 ? '模型' : '帧率下' }}最长支持 {{ videoMaxDuration }} 秒<template v-if="!isVideo25">（{{ actualNumFrames }} 帧）</template>
               </p>
               <!-- 预计时长 -->
               <p class="text-xs text-gray-400 dark:text-white/40 mt-1">
-                {{ t('videoGen.actualFrames') || '实际帧数' }}：{{ actualNumFrames }}（{{ actualDurationText }}）
+                <template v-if="isVideo25">{{ t('videoGen.secondsHint') }}</template>
+                <template v-else>{{ t('videoGen.actualFrames') || '实际帧数' }}：{{ actualNumFrames }}（{{ actualDurationText }}）</template>
               </p>
             </div>
-            <!-- 帧率选择 -->
-              <div>
+            <!-- 帧率选择（仅 v2.0；2.5 Flash 不支持自定义帧率） -->
+              <div v-if="!isVideo25">
                 <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.fpsLabel') || '帧率（FPS）' }}</label>
                 <AppSelect v-model.number="videoFrameRate" :options="videoFrameRateOptions" :disabled="videoLoading" />
               </div>
             <!-- 预计时长 -->
             <div class="px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-200/50 dark:border-white/5 text-center">
               <span class="text-xs text-gray-400 dark:text-white/40">预计时长：</span>
-              <span class="text-base font-semibold text-gray-900 dark:text-white/90 ml-1">{{ (actualNumFrames / (videoFrameRate || 24)).toFixed(1) }}</span>
+              <span class="text-base font-semibold text-gray-900 dark:text-white/90 ml-1">{{ isVideo25 ? effectiveDuration : (actualNumFrames / (videoFrameRate || 24)).toFixed(1) }}</span>
               <span class="text-xs text-gray-400 dark:text-white/40 ml-1">秒</span>
-              <span class="text-xs text-gray-400/60 dark:text-white/25 ml-2">（{{ actualNumFrames }} 帧 @ {{ videoFrameRate || 24 }} FPS）</span>
+              <span v-if="!isVideo25" class="text-xs text-gray-400/60 dark:text-white/25 ml-2">（{{ actualNumFrames }} 帧 @ {{ videoFrameRate || 24 }} FPS）</span>
             </div>
             </div>
 
-            <!-- 负向提示词 -->
-            <div>
+            <!-- 负向提示词（2.5 Flash 不支持该参数，故隐藏） -->
+            <div v-if="!isVideo25">
               <label class="block text-sm font-medium text-gray-500 dark:text-white/65 mb-2">{{ t('videoGen.negativeLabel') }}</label>
               <input v-model="videoNegative" :placeholder="t('videoGen.negativePlaceholder')" :disabled="videoLoading"
                 class="w-full px-4 py-2.5 rounded-xl text-sm text-gray-900 dark:text-white bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/5 focus:outline-none focus:border-blue-400 transition disabled:opacity-50" />
@@ -559,8 +585,9 @@
               </div>
               <p class="text-sm text-gray-700 dark:text-white/70 mb-2 overflow-hidden" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ record.prompt }}</p>
               <div class="flex flex-wrap gap-2 mb-3">
+                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.model || 'agnes-video-v2.0' }}</span>
                 <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.resolution }}</span>
-                <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.fps }} FPS</span>
+                <span v-if="record.fps" class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ record.fps }} FPS</span>
                 <span class="px-2 py-0.5 rounded text-xs bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50">{{ t('history.time', { time: record.generationTime }) }}</span>
               </div>
               <p class="text-xs text-gray-400 dark:text-white/30 mb-3">{{ formatTime(record.timestamp) }}</p>
@@ -630,11 +657,38 @@ const tabs = computed<{ value: Tab; label: string; icon: string }[]>(() => [
   { value: 'video', label: t('create.videoTab') || '视频生成', icon: '🎬' },
 ])
 
+// ========= 提示词优化所用的文本模型（图片/视频 Tab 共用） =========
+type TextModel = 'agnes-2.0-flash' | 'agnes-3.0-flash'
+const TEXT_MODEL_STORAGE_KEY = 'ai-genesis-text-model'
+const textModel = ref<TextModel>('agnes-2.0-flash')
+const textModelOptions = computed<{ value: TextModel; label: string }[]>(() => [
+  { value: 'agnes-2.0-flash', label: t('create.textModel20') || 'Agnes 2.0 Flash' },
+  { value: 'agnes-3.0-flash', label: t('create.textModel30') || 'Agnes 3.0 Flash' },
+])
+// 选择持久化，刷新后保持
+watch(textModel, (val) => {
+  if (process.client) localStorage.setItem(TEXT_MODEL_STORAGE_KEY, val)
+})
+
 // ============================================================
 //  图片生成（从 index.vue 完整迁移）
 // ============================================================
 const imagePrompt = ref('')
-const imageModel = ref<'agnes-image-2.0-flash' | 'agnes-image-2.1-flash'>('agnes-image-2.0-flash')
+type ImageModel = 'agnes-image-2.0-flash' | 'agnes-image-2.1-flash' | 'agnes-image-2.5-flash'
+
+const imageModel = ref<ImageModel>('agnes-image-2.0-flash')
+
+// 图片模型清单：supportsMulti 表示该模型是否支持多图合成
+// （2.1 Flash 仅支持单图输入，2.0 / 2.5 Flash 支持多图）
+const imageModelOptions = computed<{ value: ImageModel; label: string; desc: string; supportsMulti: boolean }[]>(() => [
+  { value: 'agnes-image-2.0-flash', label: t('imageGen.model20'), desc: t('imageGen.desc20'), supportsMulti: true },
+  { value: 'agnes-image-2.1-flash', label: t('imageGen.model21'), desc: t('imageGen.desc21'), supportsMulti: false },
+  { value: 'agnes-image-2.5-flash', label: t('imageGen.model25'), desc: t('imageGen.desc25'), supportsMulti: true },
+])
+
+const currentImageModel = computed(() =>
+  imageModelOptions.value.find(m => m.value === imageModel.value)
+)
 const imageSize = ref('1024x768')
 const imageLoading = ref(false)
 const imageResult = ref<{ url?: string; b64_json?: string } | null>(null)
@@ -667,10 +721,11 @@ const modeBtnClass = (mode: string) =>
       : 'border-transparent bg-gray-100 dark:bg-white/[0.02] text-gray-600 dark:text-white/50 hover:border-gray-300 dark:hover:border-white/10'
   ].join(' ')
 
-// —— 模型切换
-const onModelChange = (model: 'agnes-image-2.0-flash' | 'agnes-image-2.1-flash') => {
+// —— 模型切换（切到不支持多图的模型时，自动回落到文生图）
+const onModelChange = (model: ImageModel) => {
   imageModel.value = model
-  if (model === 'agnes-image-2.1-flash' && genMode.value === 'multiimg') {
+  const meta = imageModelOptions.value.find(m => m.value === model)
+  if (meta && !meta.supportsMulti && genMode.value === 'multiimg') {
     genMode.value = 'text2img'
   }
 }
@@ -837,7 +892,7 @@ const optimizePrompt = async () => {
   try {
     const response = await $fetch<{ optimized_prompt: string }>('/api/optimize-prompt', {
       method: 'POST',
-      body: { prompt: imagePrompt.value, apiKey }
+      body: { prompt: imagePrompt.value, type: 'image', model: textModel.value, apiKey }
     })
     imagePrompt.value = response.optimized_prompt
     optimizeSuccess.value = true
@@ -864,7 +919,7 @@ const optimizeVideoPrompt = async () => {
   try {
     const response = await $fetch<{ optimized_prompt: string }>('/api/optimize-prompt', {
       method: 'POST',
-      body: { prompt: videoPrompt.value, type: 'video', apiKey }
+      body: { prompt: videoPrompt.value, type: 'video', model: textModel.value, apiKey }
     })
     videoPrompt.value = response.optimized_prompt
     videoOptimizeSuccess.value = true
@@ -904,12 +959,36 @@ const onImageLoad = () => {
 // ============================================================
 const videoPrompt = ref('')
 const videoMode = ref<VideoMode>('text2video')
+// ========= 视频模型 =========
+type VideoModel = 'agnes-video-v2.0' | 'agnes-video-2.5-flash'
+const videoModel = ref<VideoModel>('agnes-video-v2.0')
+const isVideo25 = computed(() => videoModel.value === 'agnes-video-2.5-flash')
+
+const videoModelOptions = computed<{ value: VideoModel; label: string; desc: string }[]>(() => [
+  { value: 'agnes-video-v2.0',      label: t('videoGen.modelV20'), desc: t('videoGen.descV20') },
+  { value: 'agnes-video-2.5-flash', label: t('videoGen.modelV25'), desc: t('videoGen.descV25') },
+])
+const currentVideoModel = computed(() =>
+  videoModelOptions.value.find(m => m.value === videoModel.value)
+)
+
 const videoModes = computed<{ value: VideoMode; label: string }[]>(() => [
   { value: 'text2video', label: t('videoGen.modeText2Video') || '文生视频' },
   { value: 'image2video', label: t('videoGen.modeImage2Video') || '图生视频' },
   { value: 'multi', label: t('videoGen.modeMulti') || '多图视频' },
   { value: 'keyframes', label: t('videoGen.modeKeyframes') || '关键帧动画' },
 ])
+
+// —— 2.5 Flash 画幅比例（size 固定 720P，具体像素由 aspect_ratio 决定）
+const videoAspectRatioOptions = [
+  { label: '21:9 超宽（1680×720）', value: '21:9' },
+  { label: '16:9 横屏（1280×704）', value: '16:9' },
+  { label: '4:3 传统（960×720）',   value: '4:3' },
+  { label: '1:1 方形（720×720）',   value: '1:1' },
+  { label: '3:4 竖向（720×960）',   value: '3:4' },
+  { label: '9:16 竖屏（720×1280）', value: '9:16' },
+]
+const videoAspectRatio = ref('16:9')
 
 // —— 分辨率选项（按 API 文档支持的标准档位）
 // 格式：[label, width, height]
@@ -947,28 +1026,39 @@ function selectDuration(val: number) {
   videoDurationIsCustom.value = false
 }
 
-// —— 当前帧率下允许的最大时长（秒，向下取整）
+// —— 当前模型允许的最大时长（秒）
 const videoMaxDuration = computed(() => {
+  // agnes-video-2.5-flash 官方限制：seconds 为字符串 "4"–"12"
+  if (isVideo25.value) return 12
   const r = videoFrameRate.value || 24
   // 433 = 8×54+1，是满足 8n+1 且 ≤441 的最大值
   return Math.floor(433 / r)
 })
 
-// —— 预设时长选项（自动过滤超过当前帧率上限的）
-const videoDurationPresets = [5, 10, 15]
+// —— 预设时长选项（按模型区分，自动过滤超过上限的）
+const videoDurationPresets = computed(() => isVideo25.value ? [4, 5, 8, 10, 12] : [5, 10, 15])
 const videoDurationOptions = computed(() =>
-  videoDurationPresets
+  videoDurationPresets.value
     .filter(d => d <= (videoMaxDuration.value || 1))
     .map(d => ({ label: `${d} 秒`, value: d }))
 )
 
 // —— 实际使用的时长（秒）
 const effectiveDuration = computed(() => {
-  if (videoDurationIsCustom.value && videoDurationCustom.value) {
-    // 自定义时长不超过上限
-    return Math.min(videoDurationCustom.value, videoMaxDuration.value || 999)
+  const raw = (videoDurationIsCustom.value && videoDurationCustom.value)
+    ? videoDurationCustom.value
+    : (videoDuration.value || 5)
+  // 2.5 Flash 只接受 4–12 的整数秒
+  if (isVideo25.value) return Math.min(12, Math.max(4, Math.trunc(raw)))
+  return Math.min(raw, videoMaxDuration.value || 999)
+})
+
+// 切换模型时，若当前时长超出新模型范围则回落到 5 秒
+watch(videoModel, (m) => {
+  if (m === 'agnes-video-2.5-flash' && (videoDuration.value < 4 || videoDuration.value > 12)) {
+    videoDuration.value = 5
+    videoDurationIsCustom.value = false
   }
-  return videoDuration.value || 5
 })
 
 // —— 帧率选项
@@ -1013,6 +1103,15 @@ const videoSize = ref('')
 const videoElapsed = ref('')   // 生成耗时显示
 const currentVideoId = ref('') // 供轮询和手动刷新共用（改为 ref 保证模板响应式）
 const videoApiKey = ref('')   // 供轮询和手动刷新共用（改为 ref 保证模板响应式）
+
+// 状态查询 URL：agnes-video-2.5-flash 的 keyframe / reference 模式
+// 必须携带 model_name 才能查到任务，text 模式与 v2.0 则不需要。
+const buildVideoStatusUrl = (id: string, key: string) => {
+  const base = `/api/video/status?video_id=${id}&apiKey=${encodeURIComponent(key)}`
+  return isVideo25.value
+    ? `${base}&model_name=${encodeURIComponent(videoModel.value)}`
+    : base
+}
 let videoStartTime = 0      // 生成开始时间戳
 let lastManualPoll = 0       // 手动刷新防抖时间戳
 const manualParsing = ref(false)   // 手动解析 loading 状态
@@ -1072,30 +1171,56 @@ const generateVideo = async () => {
   videoElapsed.value = ''         // 重置耗时显示
 
   try {
-    // 解析分辨率
-    const [w, h] = videoResolution.value.split('x').map(Number)
-    // API mode 映射：前端用 text2video/image2video/multi/keyframes，
-    // API 只认 ti2vid（文/图生视频）和 keyframes（关键帧）
-    const apiMode = videoMode.value === 'keyframes' ? 'keyframes' : 'ti2vid'
-
     const body: any = {
-      prompt:     videoPrompt.value,
-      width:      w,
-      height:     h,
-      num_frames: actualNumFrames.value,
-      frame_rate:  videoFrameRate.value,
-      negative_prompt: videoNegative.value || undefined,
+      prompt: videoPrompt.value,
+      model:  videoModel.value,
       apiKey
     }
-    // 非文生视频模式才传图片
-    if (videoMode.value !== 'text2video' && uploadedVideos.value.length > 0) {
-      body.images = uploadedVideos.value.map((v: any) => v.dataUrl)
+
+    if (isVideo25.value) {
+      // ===== agnes-video-2.5-flash 契约 =====
+      // 模式映射（前端语义 → 官方 mode）：
+      //   文生视频   → text
+      //   图生视频   → keyframe（仅首帧）
+      //   多图视频   → reference（最多 5 张）
+      //   关键帧动画 → keyframe（首帧 + 尾帧）
+      body.seconds      = String(effectiveDuration.value)   // "4"–"12"
+      body.aspect_ratio = videoAspectRatio.value            // size 固定 720P，由服务端写入
+      const imgs = uploadedVideos.value.map((v: any) => v.dataUrl)
+
+      if (videoMode.value === 'text2video') {
+        body.mode = 'text'
+      } else if (videoMode.value === 'image2video') {
+        if (!imgs[0]) throw new Error(t('videoGen.needImage') || '请先上传参考图片')
+        body.mode = 'keyframe'
+        body.first_frame = imgs[0]
+      } else if (videoMode.value === 'multi') {
+        if (imgs.length === 0) throw new Error(t('videoGen.needImage') || '请先上传参考图片')
+        body.mode = 'reference'
+        body.images = imgs.slice(0, 5)   // 官方上限 5 张
+      } else if (videoMode.value === 'keyframes') {
+        if (!imgs[0]) throw new Error(t('videoGen.needImage') || '请先上传参考图片')
+        body.mode = 'keyframe'
+        body.first_frame = imgs[0]
+        if (imgs[1]) body.last_frame = imgs[1]
+      }
+    } else {
+      // ===== agnes-video-v2.0 契约（保持原逻辑） =====
+      const [w, h] = videoResolution.value.split('x').map(Number)
+      body.width      = w
+      body.height     = h
+      body.num_frames = actualNumFrames.value
+      body.frame_rate = videoFrameRate.value
+      body.negative_prompt = videoNegative.value || undefined
+      if (videoMode.value !== 'text2video' && uploadedVideos.value.length > 0) {
+        body.images = uploadedVideos.value.map((v: any) => v.dataUrl)
+      }
+      if (videoMode.value === 'keyframes') {
+        body.mode = 'keyframes'
+      }
     }
-    // 仅关键帧模式传 mode，其余不传（API 通过 image 字段位置自动识别 ti2vid）
-    if (videoMode.value === 'keyframes') {
-      body.mode = 'keyframes'
-    }
-    const res = await $fetch<{ video_id: string }>('/api/generate/video', {
+
+    const res = await $fetch<{ video_id: string; model?: string }>('/api/generate/video', {
       method: 'POST',
       body
     })
@@ -1108,7 +1233,7 @@ const generateVideo = async () => {
         const status = await $fetch<{
           status: string; progress?: number; video_url?: string
           seconds?: number; file_size?: string
-        }>('/api/video/status?video_id=' + videoId + '&apiKey=' + encodeURIComponent(apiKey))
+        }>(buildVideoStatusUrl(videoId, apiKey))
 
         videoStatus.value = status.status
         videoProgress.value = status.progress || 0
@@ -1157,7 +1282,7 @@ const manualPollVideo = async () => {
     const status = await $fetch<{
       status: string; progress?: number; video_url?: string
       seconds?: number; file_size?: string
-    }>('/api/video/status?video_id=' + currentVideoId.value + '&apiKey=' + encodeURIComponent(videoApiKey.value))
+    }>(buildVideoStatusUrl(currentVideoId.value, videoApiKey.value))
 
     videoStatus.value = status.status
     videoProgress.value = status.progress || 0
@@ -1220,7 +1345,7 @@ const manualParseVideoUrl = async () => {
   if (!currentVideoId.value || !videoApiKey.value) return
   manualParsing.value = true
   try {
-    const raw = await $fetch<any>('/api/video/status?video_id=' + currentVideoId.value + '&apiKey=' + encodeURIComponent(videoApiKey.value))
+    const raw = await $fetch<any>(buildVideoStatusUrl(currentVideoId.value, videoApiKey.value))
     console.log('[Video] 手动解析完整响应:', JSON.stringify(raw, null, 2))
     // 1) 优先使用服务端已提取的 video_url
     // 2) 否则扫描服务端透传的 raw 原始响应
@@ -1253,7 +1378,7 @@ const forceLoadVideoUrl = () => {
 }
 // ============================================================
 interface VideoHistoryRecord {
-  id: string; prompt: string; resolution: string; fps: number; duration: number;
+  id: string; prompt: string; model?: string; resolution: string; fps: number; duration: number;
   resultUrl?: string; timestamp: number; generationTime: number
 }
 const VIDEO_HISTORY_KEY = 'ai-genesis-video-history'
@@ -1293,9 +1418,13 @@ const addVideoHistoryRecord = () => {
   const newRecord: VideoHistoryRecord = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
     prompt: videoPrompt.value,
-    resolution: videoResolution.value,
-    fps: videoFrameRate.value,
-    duration: Math.round(actualNumFrames.value / (videoFrameRate.value || 24) * 10) / 10,
+    model: videoModel.value,
+    // 2.5 Flash 固定 720P，用画幅比例代替分辨率展示
+    resolution: isVideo25.value ? `720P ${videoAspectRatio.value}` : videoResolution.value,
+    fps: isVideo25.value ? 0 : videoFrameRate.value,
+    duration: isVideo25.value
+      ? effectiveDuration.value
+      : Math.round(actualNumFrames.value / (videoFrameRate.value || 24) * 10) / 10,
     resultUrl: videoResultUrl.value || undefined,
     timestamp: Date.now(),
     generationTime: sec
@@ -1340,6 +1469,14 @@ onMounted(() => {
     const stored = localStorage.getItem('ai-genesis-api-keys')
     if (stored) hasApiKey.value = !!JSON.parse(stored).agnes
   } catch (e) { hasApiKey.value = false }
+
+  // 恢复提示词优化模型选择
+  try {
+    const savedModel = localStorage.getItem(TEXT_MODEL_STORAGE_KEY)
+    if (savedModel === 'agnes-2.0-flash' || savedModel === 'agnes-3.0-flash') {
+      textModel.value = savedModel
+    }
+  } catch (e) { /* ignore */ }
 
   // 恢复 Tab：URL 参数优先，其次从 localStorage 读取（刷新页面后保持）
   const tab = route.query.tab as string

@@ -37,6 +37,7 @@
 
 - `agnes-image-2.0-flash`
 - `agnes-image-2.1-flash`
+- `agnes-image-2.5-flash`（最新一代，能力全面超过 2.1，支持多图合成）
 
 已实现能力：
 
@@ -52,25 +53,33 @@
 
 支持 Agnes 视频模型：
 
-- `agnes-video-v2.0`
+- `agnes-video-v2.0` — 支持自定义分辨率、帧率与负向提示词
+- `agnes-video-2.5-flash` — 固定 720P，支持 4–12 秒、首尾帧与参考图生成（`text` / `keyframe` / `reference` 三种模式），参考图最多 5 张，当前限时免费
 
 已实现能力：
 
 - 文生视频
 - 图生视频
 - 多图视频
-- 关键帧视频
-- 视频比例选择
+- 关键帧视频（首帧 + 尾帧）
+- 视频比例选择（V2.0 分辨率 / 2.5 Flash 画幅比例）
 - 视频时长选择
-- 负向提示词
+- 负向提示词（仅 V2.0）
 - 任务状态轮询
 - 视频预览和下载
+
+> 说明：`agnes-video-2.5-flash` 与 `agnes-video-v2.0` 的接口契约不同。项目按模型自动切换参数：
+> V2.0 使用 `width / height / num_frames / frame_rate`，2.5 Flash 使用 `mode / seconds / size=720P / aspect_ratio`。
+> 2.5 Flash 的 `keyframe`、`reference` 模式在轮询状态时必须携带 `model_name`，否则查不到任务。
 
 ### 提示词优化
 
 支持 Agnes 文本模型：
 
-- `agnes-2.0-flash`
+- `agnes-2.0-flash`（默认）
+- `agnes-3.0-flash`（新一代，强化指令遵循与输出完整性）
+
+两个模型共用 OpenAI 兼容的 `/v1/chat/completions` 接口，可在创作页顶部的「优化模型」中切换。
 
 已实现能力：
 

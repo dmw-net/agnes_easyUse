@@ -13,7 +13,10 @@
     "subtitle": "使用 AI 生成图片或视频内容",
     "imageTab": "图片生成",
     "videoTab": "视频生成",
-    "comingSoon": "即将上线，敬请期待"
+    "comingSoon": "即将上线，敬请期待",
+    "textModelLabel": "优化模型",
+    "textModel20": "Agnes 2.0 Flash",
+    "textModel30": "Agnes 3.0 Flash"
   },
   "features": {
     "title": "功能特色",
@@ -39,7 +42,7 @@
   },
   "imageGen": {
     "title": "AI 图片生成",
-    "subtitle": "基于 Agnes Image 2.0/2.1 Flash 模型",
+    "subtitle": "基于 Agnes Image 2.0 / 2.1 / 2.5 Flash 模型",
     "model": "模型",
     "model20": "Agnes Image 2.0 Flash",
     "model21": "Agnes Image 2.1 Flash",
@@ -84,11 +87,13 @@
     "apiKeyRequired": "请先在设置页面配置 Agnes API Key",
     "goSettings": "前往设置",
     "addUrlBtn": "添加链接",
-    "imageUrlPlaceholder": "输入图片 URL"
+    "imageUrlPlaceholder": "输入图片 URL",
+    "model25": "Agnes Image 2.5 Flash",
+    "desc25": "2.5：新一代图像模型，整体能力超越 2.1，支持文生图、图生图与多图合成"
   },
   "videoGen": {
     "title": "AI 视频生成",
-    "subtitle": "基于 Agnes Video V2.0 模型 · 异步任务式 API",
+    "subtitle": "基于 Agnes Video V2.0 / 2.5 Flash 模型 · 异步任务式 API",
     "modeLabel": "生成模式",
     "modeText2Video": "文生视频",
     "modeImage2Video": "图生视频",
@@ -129,13 +134,23 @@
     "addUrlBtn": "添加",
     "goSettings": "前往设置",
     "manualRefresh": "刷新状态",
-    "optimizeBtn": "优化提示词"
+    "optimizeBtn": "优化提示词",
+    "modelLabel": "视频模型",
+    "modelV20": "Agnes Video V2.0",
+    "descV20": "V2.0：支持自定义分辨率、帧率与负向提示词",
+    "modelV25": "Agnes Video 2.5 Flash",
+    "descV25": "2.5 Flash：固定 720P，支持 4–12 秒与首尾帧 / 参考图生成，当前限时免费",
+    "aspectRatioLabel": "画幅比例",
+    "resolutionFixed": "输出固定 720P（2.5 Flash 仅支持该档位）",
+    "secondsHint": "支持 4–12 秒",
+    "modeHint25": "图生视频=首帧；多图视频=图片参考（最多 5 张）；关键帧=首帧 + 尾帧",
+    "needImage": "请先上传参考图片"
   },
   "settings": {
     "title": "API Key 设置",
     "desc": "配置 Sapiens AI (Agnes) API Key。API Key 仅存储在您的浏览器本地（localStorage），不会上传到服务器。",
     "agnesTitle": "Sapiens AI (Agnes)",
-    "agnesDesc": "用于 Agnes Image 2.0/2.1 Flash 和 Agnes Video V2.0 模型。",
+    "agnesDesc": "用于 Agnes Image 2.0/2.1/2.5 Flash、Agnes Video V2.0/2.5 Flash 与 Agnes 2.0/3.0 Flash 文本模型。",
     "apiEndpoint": "API 端点：",
     "keyPlaceholder": "输入 Agnes API Key...",
     "show": "显示",
@@ -157,7 +172,11 @@
     "notConfigured": "⚠️ 未配置",
     "modelImage20": "Agnes Image 2.0 Flash",
     "modelImage21": "Agnes Image 2.1 Flash",
-    "modelVideo20": "Agnes Video V2.0"
+    "modelVideo20": "Agnes Video V2.0",
+    "modelImage25": "Agnes Image 2.5 Flash",
+    "modelVideo25": "Agnes Video 2.5 Flash",
+    "modelText20": "Agnes 2.0 Flash（文本）",
+    "modelText30": "Agnes 3.0 Flash（文本）"
   },
   "sponsor": {
     "title": "☕ 赞赏支持",

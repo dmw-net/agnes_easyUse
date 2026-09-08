@@ -13,7 +13,10 @@
     "subtitle": "Generate images or videos with AI",
     "imageTab": "Image Generation",
     "videoTab": "Video Generation",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "textModelLabel": "Optimizer",
+    "textModel20": "Agnes 2.0 Flash",
+    "textModel30": "Agnes 3.0 Flash"
   },
   "features": {
     "title": "Features",
@@ -39,7 +42,7 @@
   },
   "imageGen": {
     "title": "AI Image Generation",
-    "subtitle": "Based on Agnes Image 2.0/2.1 Flash models",
+    "subtitle": "Based on Agnes Image 2.0 / 2.1 / 2.5 Flash models",
     "model": "Model",
     "model20": "Agnes Image 2.0 Flash",
     "model21": "Agnes Image 2.1 Flash",
@@ -84,11 +87,13 @@
     "apiKeyRequired": "Please configure Agnes API Key in Settings first",
     "goSettings": "Go to Settings",
     "addUrlBtn": "Add URL",
-    "imageUrlPlaceholder": "Enter image URL"
+    "imageUrlPlaceholder": "Enter image URL",
+    "model25": "Agnes Image 2.5 Flash",
+    "desc25": "2.5: Newest generation, outperforms 2.1 — text-to-image, image editing and multi-image composition"
   },
   "videoGen": {
     "title": "AI Video Generation",
-    "subtitle": "Based on Agnes Video V2.0 model · Async task API",
+    "subtitle": "Based on Agnes Video V2.0 / 2.5 Flash models · Async task API",
     "modeLabel": "Generation Mode",
     "modeText2Video": "Text to Video",
     "modeImage2Video": "Image to Video",
@@ -128,13 +133,23 @@
     "manualInputPlaceholder": "Paste video URL (e.g. https://storage.googleapis.com/...)",
     "forceLoadBtn": "Force Load This URL",
     "manualInputToggle": "Can't parse? Manual input video URL →",
-    "parseFailed": "Video URL not found, please input manually"
+    "parseFailed": "Video URL not found, please input manually",
+    "modelLabel": "Video model",
+    "modelV20": "Agnes Video V2.0",
+    "descV20": "V2.0: custom resolution, frame rate and negative prompt",
+    "modelV25": "Agnes Video 2.5 Flash",
+    "descV25": "2.5 Flash: fixed 720P, 4–12s, first/last frame and reference images — currently free",
+    "aspectRatioLabel": "Aspect ratio",
+    "resolutionFixed": "Output is fixed at 720P (the only tier supported by 2.5 Flash)",
+    "secondsHint": "Supports 4–12 seconds",
+    "modeHint25": "Image-to-video = first frame; Multi-image = reference images (max 5); Keyframes = first + last frame",
+    "needImage": "Please upload a reference image first"
   },
   "settings": {
     "title": "API Key Settings",
     "desc": "Configure Sapiens AI (Agnes) API Key. The API Key is stored only in your browser's localStorage and is not uploaded to any server.",
     "agnesTitle": "Sapiens AI (Agnes)",
-    "agnesDesc": "For Agnes Image 2.0/2.1 Flash and Agnes Video V2.0 models.",
+    "agnesDesc": "For Agnes Image 2.0/2.1/2.5 Flash, Agnes Video V2.0/2.5 Flash and Agnes 2.0/3.0 Flash text models.",
     "apiEndpoint": "API Endpoint: ",
     "keyPlaceholder": "Enter Agnes API Key...",
     "show": "Show",
@@ -156,7 +171,11 @@
     "notConfigured": "⚠️ Not Configured",
     "modelImage20": "Agnes Image 2.0 Flash",
     "modelImage21": "Agnes Image 2.1 Flash",
-    "modelVideo20": "Agnes Video V2.0"
+    "modelVideo20": "Agnes Video V2.0",
+    "modelImage25": "Agnes Image 2.5 Flash",
+    "modelVideo25": "Agnes Video 2.5 Flash",
+    "modelText20": "Agnes 2.0 Flash (Text)",
+    "modelText30": "Agnes 3.0 Flash (Text)"
   },
   "sponsor": {
     "title": "☕ Sponsor",
