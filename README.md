@@ -187,8 +187,9 @@ AGNES_API_KEY_CN=your_china_site_api_key    # 国内站 agnes-ai.cn
 │   ├── i18n/locales/                 # 中英文语言包（@nuxtjs/i18n 唯一数据源）
 │   └── package.json
 ├── docs/
-│   ├── CHANGELOG.md                  # 更新记录
-│   └── BUGS.md                       # 已知问题与修复记录
+│   ├── screenshot-image-gen.png      # README 引用截图（docs/ 其余文件默认不提交，图片除外）
+│   ├── CHANGELOG.md                  # 更新记录（本地保留，默认不入库）
+│   └── BUGS.md                       # 已知问题记录（本地保留，默认不入库）
 └── README.md
 ```
 
@@ -222,7 +223,7 @@ AGNES_API_KEY_CN=your_china_site_api_key    # 国内站兜底 Key（可选）
 
 ## 更新记录
 
-详见 [docs/CHANGELOG.md](docs/CHANGELOG.md)。
+更新记录保存在本地 `docs/CHANGELOG.md`，按约定不随仓库提交（`docs/` 目录仅图片入库）。
 
 ## 求一个 Star
 

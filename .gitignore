@@ -34,9 +34,14 @@ Thumbs.db
 .workbuddy/
 
 # ========== Project docs ==========
-# docs/ 保留（README 引用了截图），只忽略赞助图
-docs/*sponsor*.jpg
-docs/*sponsor*.png
+# docs/ 目录不提交，仅保留图片（README 引用的截图；赞助商图片如需上传可单独解除忽略）
+docs/*
+!docs/*.png
+!docs/*.jpg
+!docs/*.jpeg
+!docs/*.gif
+!docs/*.webp
+!docs/*.ico
 opc-doc/
 Agnes*.md
 Agnes*.MD
@@ -45,4 +50,11 @@ Agnes*.MD
 nuxt-app/.nuxt/
 nuxt-app/dist/
 nuxt-app/node_modules/
+# nuxt-app 内的技术笔记文档同样不提交（图片除外）
+nuxt-app/docs/*
+!nuxt-app/docs/*.png
+!nuxt-app/docs/*.jpg
+!nuxt-app/docs/*.jpeg
+!nuxt-app/docs/*.gif
+!nuxt-app/docs/*.webp
 # nuxt-app/public/docs/ 保留赞赏码图片（部署时使用，设置页引用）
