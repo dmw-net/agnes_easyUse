@@ -195,6 +195,18 @@ const toggleLocale = () => {
   setLocale(newLocale as 'zh-CN' | 'en')
 }
 
+// 旧版自定义 i18n（useLocale.ts，已移除）把语言偏好存在 localStorage 'i18n-locale'，
+// 这里一次性迁移到 @nuxtjs/i18n 的 cookie 机制，避免老用户刷新后语言被重置
+onMounted(() => {
+  try {
+    const saved = localStorage.getItem('i18n-locale')
+    if (saved === 'en' || saved === 'zh-CN') {
+      if (saved !== locale.value) setLocale(saved as 'zh-CN' | 'en')
+      localStorage.removeItem('i18n-locale')
+    }
+  } catch (e) { /* ignore */ }
+})
+
 // ========= 主题切换 (color-mode) =========
 const colorMode = useColorMode()
 const isDark = computed(() => colorMode.preference === 'dark')

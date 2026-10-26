@@ -2,28 +2,38 @@
  * 视频生成 - 创建任务
  * POST /api/generate/video
  *
- * 支持两套模型契约：
- *   1. agnes-video-v2.0      → 文档: D:/zb/Desktop/test/aiGenerate/Agnes Video V2.0.md
- *      参数：height / width / num_frames / frame_rate / image / images(extra_body) / mode
- *   2. agnes-video-2.5-flash → 文档: https://agnes-ai.com/zh-Hans/docs/agnes-video-25-flash
- *      参数：mode(text|keyframe|reference) / seconds("4"-"12") / size(固定 "720P")
- *            aspect_ratio / first_frame / last_frame / images(≤5)
+ * 支持国际站（agnes-ai.com）/ 国内站（agnes-ai.cn）双站点，
+ * 通过请求体 site 字段路由（'com' | 'cn'，默认 'com'）。
+ *
+ * 模型契约（两站一致，均为 OpenAI Videos 兼容异步任务接口）：
+ *   1. agnes-video-2.5       → 全量版，size 支持 720P/1080P/1K/2K（按分辨率计费）
+ *   2. agnes-video-2.5-flash → 固定 720P，限时免费；reference 图片 ≤5
+ *
+ * 公共参数：mode(text|keyframe|reference) / seconds("4"-"12") / aspect_ratio
+ *           first_frame / last_frame（keyframe）；images（reference）
+ *
+ * 旧模型 agnes-video-v2.0 已从官方文档下线，本接口不再支持。
  *
  * API Key 来源优先级：
  *   1. 请求体中的 apiKey 字段（用户在设置页配置）
- *   2. 服务端环境变量 AGNES_API_KEY
+ *   2. 服务端环境变量（国际站 AGNES_API_KEY / 国内站 AGNES_API_KEY_CN）
  */
 
 // ============ 常量 ============
-const ALLOWED_MODELS = ['agnes-video-v2.0', 'agnes-video-2.5-flash']
+const ALLOWED_MODELS = ['agnes-video-2.5', 'agnes-video-2.5-flash']
 
-// 2.5 Flash 约束（官方校验：违反会直接 HTTP 400 且不会创建任务）
-const V25_SIZE = '720P'
 const V25_MIN_SECONDS = 4
 const V25_MAX_SECONDS = 12
-const V25_MAX_IMAGES = 5
 const V25_ASPECT_RATIOS = ['21:9', '16:9', '4:3', '1:1', '3:4', '9:16']
 const V25_MODES = ['text', 'keyframe', 'reference']
+
+// 全量版 size 档位；Flash 固定 720P
+const V25_FULL_SIZES = ['720P', '1080P', '1K', '2K']
+const FLASH_SIZE = '720P'
+// reference 模式图片上限：Flash 官方限制 5 张（超限直接 400）；
+// 全量版按计费规则第 6 张起收费，这里放行到 10 张
+const FLASH_MAX_IMAGES = 5
+const FULL_MAX_IMAGES = 10
 
 const DATA_URI_RE = /^data:image\/[\w+-]+;base64,/
 
@@ -51,21 +61,19 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const {
     prompt,
-    model   = 'agnes-video-v2.0',
-    image   = null,
-    images  = null,
+    model   = 'agnes-video-2.5-flash',
     mode    = null,
-    height  = 768,
-    width   = 1152,
-    num_frames      = 121,
-    frame_rate      = 24,
-    seed            = null,
-    negative_prompt = '',
-    // —— 2.5 Flash 专属参数 ——
-    seconds      = null,
+    seconds = null,
     aspect_ratio = '16:9',
+    // —— size 档位（全量版可选，Flash 服务端固定 720P）——
+    size    = null,
+    seed    = null,
+    // —— 模式专用媒体字段 ——
     first_frame  = null,
     last_frame   = null,
+    image   = null,
+    images  = null,
+    site = 'com',
     apiKey: clientApiKey
   } = body
 
@@ -83,36 +91,36 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 获取 API Key
-  const config = useRuntimeConfig()
-  const apiKey = clientApiKey || config.agnesApiKey || process.env.AGNES_API_KEY
+  // 站点与 API Key
+  const siteId = resolveAgnesSite(site)
+  const origin = agnesOrigin(siteId)
+  const apiKey = resolveAgnesApiKey(clientApiKey, siteId)
 
   if (!apiKey) {
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'API_KEY_MISSING',
-      data: { error: '请在设置页面配置 Agnes API Key' }
-    })
+    console.warn('[Video] No Agnes API key configured for site:', siteId)
+    throwApiKeyMissing()
   }
 
-  const isV25 = model === 'agnes-video-2.5-flash'
+  const isFlash = model === 'agnes-video-2.5-flash'
 
   // 构建请求体
-  const requestBody: Record<string, any> = isV25
-    ? buildV25Body({ prompt, mode, seconds, aspect_ratio, first_frame, last_frame, image, images, seed })
-    : buildV20Body({ prompt, height, width, num_frames, frame_rate, negative_prompt, seed, image, images, mode })
+  const requestBody = buildBody({
+    model, prompt, mode, seconds, aspect_ratio, size, seed,
+    first_frame, last_frame, image, images, isFlash
+  })
 
   // 设置 60 秒超时
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), 60000)
 
   try {
-    console.log('[Video] Creating task:', { model, ...(isV25
-      ? { mode: requestBody.mode, seconds: requestBody.seconds, aspect_ratio: requestBody.aspect_ratio }
-      : { width, height, num_frames, frame_rate }
-    ) })
+    console.log('[Video] Creating task:', {
+      site: siteId, model,
+      mode: requestBody.mode, seconds: requestBody.seconds,
+      size: requestBody.size, aspect_ratio: requestBody.aspect_ratio
+    })
 
-    const response = await fetch('https://apihub.agnes-ai.com/v1/videos', {
+    const response = await fetch(`${origin}/v1/videos`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -128,8 +136,8 @@ export default defineEventHandler(async (event) => {
       console.error('[Video] Create task failed:', response.status, errorData)
       throw createError({
         statusCode: response.status,
-        // 2.5 Flash 的校验错误返回 { detail: "..." } 而非 OpenAI 风格的 error.message
-        statusMessage: errorData.error?.message || errorData.detail || `Agnes API request failed: ${response.statusText}`,
+        // 2.5 系列的校验错误返回 { detail: "..." } 或 { message: "..." } 而非 OpenAI 风格的 error.message
+        statusMessage: errorData.error?.message || errorData.detail || errorData.message || `Agnes API request failed: ${response.statusText}`,
         data: errorData
       })
     }
@@ -143,9 +151,9 @@ export default defineEventHandler(async (event) => {
       status:   data.status || 'queued',
       progress: data.progress || 0,
       seconds:  data.seconds || '',
-      size:    data.size || '',
-      // 回传模型名，供状态查询时决定是否携带 model_name（2.5 Flash 的
-      // keyframe / reference 模式必须带 model_name 才能查到结果）
+      size:     data.size || '',
+      // 回传模型名，供状态查询时携带 model_name
+      //（2.5 系列的 keyframe / reference 模式必须带 model_name 才能查到结果）
       model
     }
 
@@ -170,106 +178,57 @@ export default defineEventHandler(async (event) => {
 })
 
 // ============================================================
-//  agnes-video-v2.0 请求体（保持既有行为不变）
+//  agnes-video-2.5 / 2.5-flash 请求体（共用契约，差异仅在 size 档位与图片上限）
 // ============================================================
-function buildV20Body(params: {
-  prompt: string
-  height: number
-  width: number
-  num_frames: number
-  frame_rate: number
-  negative_prompt: string
-  seed: any
-  image: any
-  images: any
-  mode: any
-}): Record<string, any> {
-  const { prompt, height, width, num_frames, frame_rate, negative_prompt, seed, image, images, mode } = params
-
-  const requestBody: Record<string, any> = {
-    model: 'agnes-video-v2.0',
-    prompt,
-    height,
-    width,
-    num_frames,
-    frame_rate
-  }
-
-  // 图片直接以 base64 data URI 内联传给 Agnes（不依赖外部图床）：
-  // tmpfiles.org 链接生命周期短，Agnes 拉取时频繁出现
-  // "Download image URL failed: Connection reset by peer"。
-  const imageData = images || image
-  if (imageData) {
-    const list = Array.isArray(imageData) ? imageData : [imageData]
-    // v2.0 链路沿用原有严格校验（仅接受 data URI）
-    if (list.some((b64: unknown) => typeof b64 !== 'string' || !DATA_URI_RE.test(b64))) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'INVALID_IMAGE_DATA',
-        data: { error: '图片数据格式不正确，应为 base64 图片（data:image/...;base64,）' }
-      })
-    }
-    if (list.length === 1 && mode !== 'keyframes') {
-      requestBody.image = list[0]
-    } else {
-      requestBody.extra_body = { image: list }
-      if (mode === 'keyframes') {
-        requestBody.extra_body.mode = 'keyframes'
-      }
-    }
-  }
-
-  if (negative_prompt) {
-    requestBody.negative_prompt = negative_prompt
-  }
-
-  if (seed !== null && seed !== '') {
-    requestBody.seed = Number(seed)
-  }
-
-  return requestBody
-}
-
-// ============================================================
-//  agnes-video-2.5-flash 请求体
-// ============================================================
-function buildV25Body(params: {
+function buildBody(params: {
+  model: string
   prompt: string
   mode: any
   seconds: any
   aspect_ratio: any
+  size: any
+  seed: any
   first_frame: any
   last_frame: any
   image: any
   images: any
-  seed: any
+  isFlash: boolean
 }): Record<string, any> {
-  const { prompt, mode, seconds, aspect_ratio, first_frame, last_frame, image, images, seed } = params
+  const { model, prompt, mode, seconds, aspect_ratio, size, seed, first_frame, last_frame, image, images, isFlash } = params
 
   // —— mode 校验 ——
   if (!mode || !V25_MODES.includes(mode)) {
     throw createError({
       statusCode: 400,
-      statusMessage: `Invalid mode for agnes-video-2.5-flash. Allowed: ${V25_MODES.join(', ')}`
+      statusMessage: `Invalid mode. Allowed: ${V25_MODES.join(', ')}`
     })
   }
 
   // —— 画幅比例校验（默认 16:9）——
   const ratio = V25_ASPECT_RATIOS.includes(aspect_ratio) ? aspect_ratio : '16:9'
 
-  // —— 时长校验：字符串 "4"–"12"，超出范围直接收敛到边界，避免 400 ——
+  // —— size 档位：
+  //    Flash 固定 720P（传其他值返回 400: size must be 720P）
+  //    全量版支持 720P/1080P/1K/2K，默认 720P
+  let sizeTier: string
+  if (isFlash) {
+    sizeTier = FLASH_SIZE
+  } else {
+    sizeTier = V25_FULL_SIZES.includes(size) ? size : '720P'
+  }
+
+  // —— 时长校验：字符串 "4"–"12"，非法值收敛到边界，避免 400 ——
   const rawSeconds = Number(seconds)
   const safeSeconds = Number.isFinite(rawSeconds)
     ? Math.min(V25_MAX_SECONDS, Math.max(V25_MIN_SECONDS, Math.trunc(rawSeconds)))
     : 5
 
   const requestBody: Record<string, any> = {
-    model: 'agnes-video-2.5-flash',
+    model,
     prompt,
     mode,
     seconds: String(safeSeconds),
-    // Flash 版本固定 720P，传其他值会返回 HTTP 400: size must be 720P
-    size: V25_SIZE,
+    size: sizeTier,
     aspect_ratio: ratio,
     n: 1
   }
@@ -296,11 +255,12 @@ function buildV25Body(params: {
         data: { error: '请上传参考图片' }
       })
     }
-    if (list.length > V25_MAX_IMAGES) {
+    const maxImages = isFlash ? FLASH_MAX_IMAGES : FULL_MAX_IMAGES
+    if (list.length > maxImages) {
       throw createError({
         statusCode: 400,
-        statusMessage: `reference 模式最多支持 ${V25_MAX_IMAGES} 张参考图片`,
-        data: { error: `当前 ${list.length} 张，请移除至 ${V25_MAX_IMAGES} 张以内` }
+        statusMessage: `reference 模式最多支持 ${maxImages} 张参考图片`,
+        data: { error: `当前 ${list.length} 张，请移除至 ${maxImages} 张以内` }
       })
     }
     requestBody.images = list

@@ -140,7 +140,7 @@ onMounted(() => {
           >
             <div class="text-4xl mb-4">🖼️</div>
             <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white/90">{{ t('features.imageGen') || 'AI 图片生成' }}</h3>
-            <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.imageGenDesc') || '基于 Agnes Image 2.0/2.1 Flash 模型，支持文生图、图生图、多图合成' }}</p>
+            <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.imageGenDesc') || '基于 Agnes Image 2.0/2.1/2.5 Flash 模型，支持文生图、图生图、多图合成，1K–4K 档位输出' }}</p>
           </NuxtLink>
           <!-- 视频生成 -->
           <NuxtLink
@@ -149,7 +149,7 @@ onMounted(() => {
           >
             <div class="text-4xl mb-4">🎬</div>
             <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white/90">{{ t('features.videoGen') || 'AI 视频生成' }}</h3>
-            <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.videoGenDesc') || '基于 Agnes Video V2.0 模型，支持文生视频、图生视频、关键帧动画' }}</p>
+            <p class="text-sm text-gray-500 dark:text-white/50">{{ t('features.videoGenDesc') || '基于 Agnes Video 2.5 / 2.5 Flash 模型，支持文生视频、图生视频、关键帧与多图参考' }}</p>
           </NuxtLink>
           <!-- 提示词优化 -->
           <NuxtLink

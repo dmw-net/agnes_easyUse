@@ -1,21 +1,24 @@
 /**
- * 提示词优化 API - 使用 Agnes 2.0 Flash / 3.0 Flash 文本模型
- * 文档: D:/zb/Desktop/test/aiGenerate/Agnes 2.0 Flash.md
- *       https://agnes-ai.com/zh-Hans/docs/agnes-30-flash
+ * 提示词优化 API - 使用 Agnes 2.5 Flash / 3.0 Flash 文本模型
+ * 文档: https://agnes-ai.com/zh-Hans/docs/agnes-25-flash
+ *       https://agnes-ai.cn/zh-Hans/docs/agnes-30-flash
  *
- * 两个模型共用 OpenAI 兼容的 /v1/chat/completions 接口，仅模型名不同。
+ * 两个模型共用 OpenAI 兼容的 /v1/chat/completions 接口，仅模型名不同，
+ * 当前两站在优惠期内均免费。旧模型 agnes-2.0-flash 已废弃，不再支持。
+ *
+ * 支持国际站 / 国内站双站点，通过请求体 site 字段路由（'com' | 'cn'）。
  *
  * API Key 来源优先级：
  *   1. 请求体中的 apiKey 字段（用户在设置页配置，从前端传入）
- *   2. 服务端环境变量 AGNES_API_KEY（部署时配置）
+ *   2. 服务端环境变量（国际站 AGNES_API_KEY / 国内站 AGNES_API_KEY_CN）
  */
 
-const ALLOWED_TEXT_MODELS = ['agnes-2.0-flash', 'agnes-3.0-flash']
+const ALLOWED_TEXT_MODELS = ['agnes-2.5-flash', 'agnes-3.0-flash']
 
 export default defineEventHandler(async (event) => {
   // 读取请求体
   const body = await readBody(event)
-  const { prompt, type = 'image', model = 'agnes-2.0-flash', apiKey: clientApiKey } = body
+  const { prompt, type = 'image', model = 'agnes-2.5-flash', site = 'com', apiKey: clientApiKey } = body
 
   // 验证参数
   if (!prompt || prompt.trim().length === 0) {
@@ -25,7 +28,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 验证模型名称（2.0 / 3.0 Flash 均为文本模型，接口完全一致，仅名称不同）
+  // 验证模型名称（2.5 / 3.0 Flash 均为文本模型，接口完全一致，仅名称不同）
   if (!ALLOWED_TEXT_MODELS.includes(model)) {
     throw createError({
       statusCode: 400,
@@ -33,17 +36,14 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 获取 API Key：优先使用前端传入的，其次使用服务端环境变量
-  const config = useRuntimeConfig()
-  const apiKey = clientApiKey || config.agnesApiKey || process.env.AGNES_API_KEY
+  // 站点与 API Key
+  const siteId = resolveAgnesSite(site)
+  const origin = agnesOrigin(siteId)
+  const apiKey = resolveAgnesApiKey(clientApiKey, siteId)
 
   if (!apiKey) {
-    console.warn('[Optimize] No Agnes API key configured for prompt optimization')
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'API_KEY_MISSING',
-      data: { error: '请在设置页面配置 Agnes API Key' }
-    })
+    console.warn('[Optimize] No Agnes API key configured for site:', siteId)
+    throwApiKeyMissing()
   }
 
   // 根据类型生成不同的 system prompt
@@ -108,10 +108,11 @@ Output: A cute cat sitting on the crescent moon, fluffy fur, glowing eyes, starr
   const timeoutId = setTimeout(() => controller.abort(), 30000)
 
   try {
-    console.log('[Optimize] Calling Agnes API:', 'https://apihub.agnes-ai.com/v1/chat/completions')
+    const endpoint = `${origin}/v1/chat/completions`
+    console.log('[Optimize] Calling Agnes API:', endpoint, '| site:', siteId)
 
     // 调用 Agnes API
-    const response = await fetch('https://apihub.agnes-ai.com/v1/chat/completions', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

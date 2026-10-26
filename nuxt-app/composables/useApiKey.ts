@@ -1,86 +1,129 @@
 /**
  * API Key 管理组合式函数
- * 支持 Agnes AI API Key 管理
+ * 支持 Agnes AI 国际站 / 国内站双站点 API Key 管理
  * 存储位置：localStorage (仅浏览器端)
+ *
+ * 存储结构：
+ *   ai-genesis-api-site  → 'com' | 'cn'（当前激活站点，默认 'com'）
+ *   ai-genesis-api-keys  → { com?: string; cn?: string; agnes?: string }
+ *                          （agnes 为旧版单站点结构的 Key，作为两站点的兜底回填）
  */
 import { ref, readonly } from 'vue'
 
+export type AgnesSite = 'com' | 'cn'
+
+const KEYS_STORAGE = 'ai-genesis-api-keys'
+const SITE_STORAGE = 'ai-genesis-api-site'
+
 export interface ApiKeys {
+  com?: string
+  cn?: string
+  /** 旧版单站点结构的 Key（已停止写入，仅作迁移兜底） */
   agnes?: string
   [key: string]: string | undefined
 }
 
-export const useApiKey = () => {
-  // 从 localStorage 读取 API Keys
-  const loadKeys = (): ApiKeys => {
-    if (process.client) {
-      const stored = localStorage.getItem('ai-genesis-api-keys')
-      if (stored) {
-        try {
-          return JSON.parse(stored)
-        } catch (e) {
-          console.error('Failed to parse API keys:', e)
-        }
+const parseKeys = (): ApiKeys => {
+  if (process.client) {
+    const stored = localStorage.getItem(KEYS_STORAGE)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch (e) {
+        console.error('Failed to parse API keys:', e)
       }
     }
-    return {}
+  }
+  return {}
+}
+
+export const useApiKey = () => {
+  // 响应式状态
+  const apiKeys = ref<ApiKeys>(parseKeys())
+
+  // ---------- 站点 ----------
+  const getSite = (): AgnesSite => {
+    if (process.client) {
+      return localStorage.getItem(SITE_STORAGE) === 'cn' ? 'cn' : 'com'
+    }
+    return 'com'
   }
 
-  // 保存 API Keys 到 localStorage
-  const saveKeys = (keys: ApiKeys) => {
+  const setSite = (site: AgnesSite) => {
+    apiKeys.value[site] = apiKeys.value[site]
     if (process.client) {
-      localStorage.setItem('ai-genesis-api-keys', JSON.stringify(keys))
+      localStorage.setItem(SITE_STORAGE, site)
     }
   }
 
-  // 响应式状态
-  const apiKeys = ref<ApiKeys>(loadKeys())
-
-  // 设置 API Key
-  const setApiKey = (provider: string, key: string) => {
-    apiKeys.value[provider] = key
-    saveKeys(apiKeys.value)
+  // ---------- Key 读写（按站点） ----------
+  const saveKeys = () => {
+    if (process.client) {
+      localStorage.setItem(KEYS_STORAGE, JSON.stringify(apiKeys.value))
+    }
   }
 
-  // 获取 API Key
+  /** 读取指定站点的 Key；站点无 Key 时回退旧版 agnes Key（迁移兜底） */
+  const getSiteKey = (site: AgnesSite): string => {
+    return apiKeys.value[site] || apiKeys.value.agnes || ''
+  }
+
+  const setSiteKey = (site: AgnesSite, key: string) => {
+    apiKeys.value[site] = key
+    saveKeys()
+  }
+
+  const removeSiteKey = (site: AgnesSite) => {
+    delete apiKeys.value[site]
+    saveKeys()
+  }
+
+  /** 当前激活站点是否有可用 Key */
+  const hasSiteKey = (site: AgnesSite): boolean => !!getSiteKey(site)
+
+  // ---------- 兼容旧接口（provider 形式） ----------
+  const setApiKey = (provider: string, key: string) => {
+    apiKeys.value[provider] = key
+    saveKeys()
+  }
+
   const getApiKey = (provider: string): string | undefined => {
     return apiKeys.value[provider]
   }
 
-  // 删除 API Key
   const removeApiKey = (provider: string) => {
     delete apiKeys.value[provider]
-    saveKeys(apiKeys.value)
+    saveKeys()
   }
 
-  // 检查是否有某个提供商的 API Key
   const hasApiKey = (provider: string): boolean => {
     return !!apiKeys.value[provider]
   }
 
-  // 清除所有 API Keys
   const clearAllKeys = () => {
     apiKeys.value = {}
     if (process.client) {
-      localStorage.removeItem('ai-genesis-api-keys')
+      localStorage.removeItem(KEYS_STORAGE)
     }
   }
 
   // 验证 API Key 格式 (基础验证)
   const validateApiKey = (provider: string, key: string): boolean => {
     if (!key) return false
-
-    switch (provider) {
-      case 'agnes':
-        // Agnes API Key 格式（根据实际情况调整）
-        return key.length > 10
-      default:
-        return key.length > 10
-    }
+    return key.length > 10
   }
 
   return {
     apiKeys: readonly(apiKeys),
+    // 站点
+    getSite,
+    setSite,
+    // 按站点
+    getSiteKey,
+    setSiteKey,
+    removeSiteKey,
+    hasSiteKey,
+    // 兼容旧接口
     setApiKey,
     getApiKey,
     removeApiKey,

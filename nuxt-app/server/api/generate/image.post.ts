@@ -1,23 +1,36 @@
 /**
  * 图片生成 API - 使用 Agnes Image 2.0/2.1/2.5 Flash
- * 文档: D:/zb/Desktop/test/aiGenerate/Agnes Image 2.0 Flash.md
- *        D:/zb/Desktop/test/aiGenerate/Agnes Image 2.1 Flash.md
- *        https://agnes-ai.com/zh-Hans/docs/agnes-image-25-flash
+ * 文档: https://agnes-ai.com/zh-Hans/docs/agnes-image-25-flash
+ *       https://agnes-ai.cn/zh-Hans/docs/agnes-image-25-flash
+ *
+ * 支持国际站（agnes-ai.com）/ 国内站（agnes-ai.cn）双站点，
+ * 通过请求体 site 字段路由（'com' | 'cn'，默认 'com'）。
+ *
+ * 尺寸契约（按模型区分）：
+ *   - 2.1 / 2.5 Flash：档位式 size（1K/2K/3K/4K）+ ratio 宽高比
+ *   - 2.0 Flash：精确尺寸（如 1024x768），档位写法亦兼容
  *
  * API Key 来源优先级：
  *   1. 请求体中的 apiKey 字段（用户在设置页配置，从前端传入）
- *   2. 服务端环境变量 AGNES_API_KEY（部署时配置）
+ *   2. 服务端环境变量（国际站 AGNES_API_KEY / 国内站 AGNES_API_KEY_CN）
  */
+
+const ALLOWED_IMAGE_MODELS = ['agnes-image-2.0-flash', 'agnes-image-2.1-flash', 'agnes-image-2.5-flash']
+const SIZE_TIER_RE = /^\d+[Kk]$/
+const SIZE_EXACT_RE = /^\d{2,5}x\d{2,5}$/
+const ALLOWED_RATIOS = ['1:1', '3:4', '4:3', '16:9', '9:16', '2:3', '3:2', '21:9']
 
 export default defineEventHandler(async (event) => {
   // 读取请求体
   const body = await readBody(event)
   const {
     prompt,
-    model = 'agnes-image-2.0-flash',
-    size = '1024x768',
+    model = 'agnes-image-2.5-flash',
+    size = '1K',
+    ratio = null,
     image = null,
     return_base64 = false,
+    site = 'com',
     apiKey: clientApiKey
   } = body
 
@@ -30,48 +43,57 @@ export default defineEventHandler(async (event) => {
   }
 
   // 验证模型名称
-  const allowedModels = ['agnes-image-2.0-flash', 'agnes-image-2.1-flash', 'agnes-image-2.5-flash']
-  if (!allowedModels.includes(model)) {
+  if (!ALLOWED_IMAGE_MODELS.includes(model)) {
     throw createError({
       statusCode: 400,
-      statusMessage: `Invalid model. Allowed models: ${allowedModels.join(', ')}`
+      statusMessage: `Invalid model. Allowed models: ${ALLOWED_IMAGE_MODELS.join(', ')}`
     })
   }
 
-  // 获取 API Key
-  const config = useRuntimeConfig()
-  const apiKey = clientApiKey || config.agnesApiKey || process.env.AGNES_API_KEY
+  // 验证尺寸：档位（1K/2K/3K/4K）或精确宽高（1024x768）
+  if (!SIZE_TIER_RE.test(size) && !SIZE_EXACT_RE.test(size)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid size. Use a tier like "1K"/"2K"/"3K"/"4K" or an exact size like "1024x768"'
+    })
+  }
+
+  // 验证宽高比（可选）
+  if (ratio && !ALLOWED_RATIOS.includes(ratio)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `Invalid ratio. Allowed ratios: ${ALLOWED_RATIOS.join(', ')}`
+    })
+  }
+
+  // 站点与 API Key
+  const siteId = resolveAgnesSite(site)
+  const origin = agnesOrigin(siteId)
+  const apiKey = resolveAgnesApiKey(clientApiKey, siteId)
 
   if (!apiKey) {
-    console.warn('[Image] No Agnes API key configured')
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'API_KEY_MISSING',
-      data: { error: '请在设置页面配置 Agnes API Key' }
-    })
+    console.warn('[Image] No Agnes API key configured for site:', siteId)
+    throwApiKeyMissing()
   }
 
-  // 构建请求体
+  // 构建请求体。
+  // 输入图片统一放 extra_body.image（官方文档明确要求，
+  // 顶层 image 会被服务端忽略；2.0/2.1/2.5 三个模型同此契约）。
   const requestBody: any = {
     model,
     prompt,
     size
   }
+  if (ratio) {
+    requestBody.ratio = ratio
+  }
 
-  // 输入图片（图生图 / 多图合成）的字段位置按模型区分：
-  //   - 2.0 Flash：顶层 image 数组
-  //   - 2.5 Flash：extra_body.image 数组（官方文档明确要求，放顶层会被忽略）
-  //   - 2.1 Flash：沿用项目既有行为（顶层 image），避免改动已验证的链路
   requestBody.extra_body = {
     response_format: 'url'
   }
 
   if (image && Array.isArray(image) && image.length > 0) {
-    if (model === 'agnes-image-2.5-flash') {
-      requestBody.extra_body.image = image
-    } else {
-      requestBody.image = image
-    }
+    requestBody.extra_body.image = image
   }
 
   // 超时设置：Agnes 图片生成根据复杂度/尺寸/负载可能耗时几十秒甚至更久，
@@ -82,10 +104,11 @@ export default defineEventHandler(async (event) => {
   const timeoutId = setTimeout(() => controller.abort(), 300000)
 
   try {
-    console.log('[Image] Calling Agnes API:', 'https://apihub.agnes-ai.com/v1/images/generations')
-    console.log('[Image] Model:', model, '| Size:', size)
+    const endpoint = `${origin}/v1/images/generations`
+    console.log('[Image] Calling Agnes API:', endpoint, '| site:', siteId)
+    console.log('[Image] Model:', model, '| Size:', size, ratio ? `| Ratio: ${ratio}` : '')
 
-    const response = await fetch('https://apihub.agnes-ai.com/v1/images/generations', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +124,7 @@ export default defineEventHandler(async (event) => {
       console.error('[Image] Agnes API error:', response.status, JSON.stringify(errorData))
       throw createError({
         statusCode: response.status,
-        statusMessage: errorData.error?.message || `Agnes API request failed: ${response.statusText}`,
+        statusMessage: errorData.error?.message || errorData.detail || `Agnes API request failed: ${response.statusText}`,
         data: errorData
       })
     }

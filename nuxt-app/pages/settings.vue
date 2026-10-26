@@ -18,25 +18,51 @@
         <div class="rounded-[calc(1.5rem-1.5px)] p-6 md:p-8 bg-white dark:bg-[#0a0a18] transition-colors duration-300">
           <h2 class="text-xl md:text-2xl font-semibold mb-2 text-gray-900 dark:text-white/95" style="font-family: 'Inter', sans-serif;">{{ t('settings.agnesTitle') }}</h2>
           <p class="text-gray-500 dark:text-white/65 text-sm mb-5 leading-7">
-            {{ t('settings.agnesDesc') }}<br />
-            {{ t('settings.apiEndpoint') }}<code class="text-xs bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">https://apihub.agnes-ai.com</code>
+            {{ t('settings.agnesDesc') }}
           </p>
 
-          <!-- 获取 API Key 醒目按钮 -->
+          <!-- 站点切换：国际站 / 国内站（账号与 Key 相互独立），圆点表示该站点 Key 状态 -->
+          <div class="flex gap-2 mb-5 p-1 rounded-2xl bg-gray-100 dark:bg-white/[0.03] border border-gray-200/50 dark:border-white/3 w-fit">
+            <button
+              v-for="s in siteOptions"
+              :key="s.value"
+              @click="activeSite = s.value"
+              :title="hasSiteKey(s.value) ? t('create.siteKeyReady') || 'Key 已配置' : t('create.siteKeyMissing') || '未配置 Key'"
+              :class="[
+                'group flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap',
+                activeSite === s.value
+                  ? 'bg-white dark:bg-white/10 text-blue-500 dark:text-blue-400 shadow-sm'
+                  : 'text-gray-500 dark:text-white/40 hover:text-gray-900 dark:hover:text-white/70'
+              ]"
+            >
+              <span class="relative flex w-1.5 h-1.5 shrink-0">
+                <span v-if="hasSiteKey(s.value)" class="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-60 group-hover:animate-ping"></span>
+                <span class="relative inline-flex w-1.5 h-1.5 rounded-full" :class="hasSiteKey(s.value) ? 'bg-emerald-500' : 'bg-amber-400'"></span>
+              </span>
+              {{ s.label }}
+            </button>
+          </div>
+          <p class="text-gray-500 dark:text-white/65 text-sm mb-5 leading-7">
+            {{ t('settings.apiEndpoint') }}<code class="text-xs bg-gray-100 dark:bg-white/5 px-2 py-1 rounded">{{ currentSiteConfig.origin }}</code>
+            <br />
+            <span class="text-xs text-gray-400 dark:text-white/40">{{ t('settings.siteKeyHint') }}</span>
+          </p>
+
+          <!-- 获取 API Key 醒目按钮（按站点跳转对应控制台） -->
           <a
-            href="https://platform.agnes-ai.com/settings/apiKeys"
+            :href="currentSiteConfig.consoleUrl"
             target="_blank"
             rel="noopener"
             class="inline-flex items-center gap-2 px-5 py-2.5 mb-5 rounded-[99px] text-sm font-semibold text-white transition hover:opacity-90 hover:scale-[1.03] transform"
             style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
           >
-            🔑 {{ locale === 'zh-CN' ? '获取 Agnes API Key' : 'Get Agnes API Key' }}
+            🔑 {{ locale === 'zh-CN' ? `获取${activeSite === 'cn' ? '国内站' : '国际站'} API Key` : `Get ${activeSite === 'cn' ? 'China Site' : 'Global Site'} API Key` }}
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
           </a>
 
           <div class="flex gap-3 flex-wrap">
             <input
-              v-model="agnesKey"
+              v-model="siteKeys[activeSite]"
               :type="showKey ? 'text' : 'password'"
               :placeholder="t('settings.keyPlaceholder')"
               class="flex-1 min-w-[200px] bg-gray-100 dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-lg px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-blue-500 transition text-sm"
@@ -49,14 +75,14 @@
               {{ showKey ? '🙈 ' + t('settings.hide') : '👁️ ' + t('settings.show') }}
             </button>
             <button
-              @click="saveKey('agnes')"
+              @click="saveSiteKey"
               class="px-6 py-2.5 rounded-[99px] text-sm font-semibold text-white transition hover:opacity-90 hover:scale-[1.03] transform"
               style="background: linear-gradient(135deg, #2EA7FF 0%, #9381FF 100%);"
             >
               {{ t('settings.save') }}
             </button>
           </div>
-          <p v-if="savedMessage === 'agnes'" class="text-green-500 dark:text-green-400 text-sm mt-3">
+          <p v-if="savedMessage === activeSite" class="text-green-500 dark:text-green-400 text-sm mt-3">
             ✅ {{ t('settings.saved') }}
           </p>
         </div>
@@ -256,14 +282,65 @@ useHead({
   ]
 })
 
-import { useApiKey } from '~/composables/useApiKey'
+import { useApiKey, type AgnesSite } from '~/composables/useApiKey'
 
 const { t, locale } = useI18n()
-const { setApiKey, getApiKey } = useApiKey()
+const { setSite, setSiteKey, getSiteKey, getSite, hasSiteKey } = useApiKey()
 
-const agnesKey = ref(getApiKey('agnes') || '')
+// ========= 站点 =========
+// 国际站（agnes-ai.com）与国内站（agnes-ai.cn）账号体系与 API Key 相互独立
+const siteOptions = computed<{ value: AgnesSite; label: string }[]>(() => [
+  { value: 'com', label: t('settings.siteCom') || '国际站 agnes-ai.com' },
+  { value: 'cn',  label: t('settings.siteCn') || '国内站 agnes-ai.cn' },
+])
+
+// 站点对应的 API/控制台信息（与 server/utils/agnes.ts 保持一致）
+const SITE_CONFIG: Record<AgnesSite, { origin: string; consoleUrl: string }> = {
+  com: {
+    origin: 'https://apihub.agnes-ai.com',
+    consoleUrl: 'https://platform.agnes-ai.com/settings/apiKeys'
+  },
+  cn: {
+    origin: 'https://api.agnes-ai.cn',
+    consoleUrl: 'https://platform.agnes-ai.cn/settings/apiKeys'
+  }
+}
+
+// 当前激活站点（同时作为创作页的调用目标）
+const activeSite = ref<AgnesSite>('com')
+const currentSiteConfig = computed(() => SITE_CONFIG[activeSite.value])
+
+// 双站点 Key 输入（v-model 绑定用普通对象，保存时写入 composable）
+const siteKeys = reactive<{ com: string; cn: string }>({ com: '', cn: '' })
+
+// 初始化：恢复站点选择与两站 Key（旧版单站点 Key 'agnes' 作为迁移兜底）
+onMounted(() => {
+  activeSite.value = getSite()
+  siteKeys.com = getSiteKey('com')
+  siteKeys.cn = getSiteKey('cn')
+})
+
+// 切换站点即切换创作页的调用目标
+watch(activeSite, (site) => setSite(site))
+
 const showKey = ref(false)
 const savedMessage = ref('')
+
+// 保存当前站点的 Key
+const saveSiteKey = () => {
+  const key = siteKeys[activeSite.value]
+  if (!key) {
+    alert(t('settings.keyPlaceholder'))
+    return
+  }
+  if (key.length < 10) {
+    alert(t('settings.keyPlaceholder') + '（长度不足）')
+    return
+  }
+  setSiteKey(activeSite.value, key)
+  savedMessage.value = activeSite.value
+  setTimeout(() => { savedMessage.value = '' }, 3000)
+}
 
 // 赞赏码相关
 const sponsorWechatOk = ref(false)
@@ -319,65 +396,47 @@ const securityTips = computed(() => {
   ]
 })
 
-// 已配置的模型列表
-const configuredModels = computed(() => [
-  {
-    label: t('settings.modelImage20'),
-    name: 'agnes-image-2.0-flash',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelImage21'),
-    name: 'agnes-image-2.1-flash',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelImage25'),
-    name: 'agnes-image-2.5-flash',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelVideo20'),
-    name: 'agnes-video-v2.0',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelVideo25'),
-    name: 'agnes-video-2.5-flash',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelText20'),
-    name: 'agnes-2.0-flash',
-    configured: !!agnesKey.value
-  },
-  {
-    label: t('settings.modelText30'),
-    name: 'agnes-3.0-flash',
-    configured: !!agnesKey.value
-  }
-])
-
-const saveKey = (provider: string) => {
-  const key = provider === 'agnes' ? agnesKey.value : ''
-
-  if (!key) {
-    alert(t('settings.keyPlaceholder'))
-    return
-  }
-
-  if (key.length < 10) {
-    alert(t('settings.keyPlaceholder') + '（长度不足）')
-    return
-  }
-
-  setApiKey(provider, key)
-  savedMessage.value = provider
-
-  setTimeout(() => {
-    savedMessage.value = ''
-  }, 3000)
-}
+// 已配置的模型列表（与官方文档当前在售 lineup 保持一致）
+const configuredModels = computed(() => {
+  const configured = hasSiteKey(activeSite.value)
+  return [
+    {
+      label: t('settings.modelImage25'),
+      name: 'agnes-image-2.5-flash',
+      configured
+    },
+    {
+      label: t('settings.modelImage21'),
+      name: 'agnes-image-2.1-flash',
+      configured
+    },
+    {
+      label: t('settings.modelImage20'),
+      name: 'agnes-image-2.0-flash',
+      configured
+    },
+    {
+      label: t('settings.modelVideo25Flash'),
+      name: 'agnes-video-2.5-flash',
+      configured
+    },
+    {
+      label: t('settings.modelVideo25Full'),
+      name: 'agnes-video-2.5',
+      configured
+    },
+    {
+      label: t('settings.modelText25'),
+      name: 'agnes-2.5-flash',
+      configured
+    },
+    {
+      label: t('settings.modelText30'),
+      name: 'agnes-3.0-flash',
+      configured
+    }
+  ]
+})
 
 onMounted(() => {
   checkSponsorImages()

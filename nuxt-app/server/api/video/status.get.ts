@@ -1,15 +1,15 @@
 /**
- * 视频任务状态查询 - 推荐方式（使用 video_id）
- * GET /api/video/status?video_id=xxx&model_name=agnes-video-2.5-flash
+ * 视频任务状态查询 - 推荐方式（使用 video_id + model_name）
+ * GET /api/video/status?video_id=xxx&model_name=agnes-video-2.5-flash&site=cn
  *
- * 文档: D:/zb/Desktop/test/aiGenerate/Agnes Video V2.0.md
- *       https://agnes-ai.com/zh-Hans/docs/agnes-video-25-flash
- * Endpoint: https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>[&model_name=<MODEL>]
+ * 文档: https://agnes-ai.com/zh-Hans/docs/agnes-video-25-flash
+ *       https://agnes-ai.cn/zh-Hans/docs/agnes-video-25
+ * 国际站 Endpoint: https://apihub.agnes-ai.com/agnesapi?video_id=<VIDEO_ID>[&model_name=<MODEL>]
+ * 国内站 Endpoint: https://api.agnes-ai.cn/agnesapi?video_id=<VIDEO_ID>[&model_name=<MODEL>]
  *
  * model_name 说明：
- *   - agnes-video-2.5-flash 的 keyframe / reference 模式必须携带 model_name，
- *     否则查询不到任务；text 模式可省略。
- *   - agnes-video-v2.0 不携带该参数。
+ *   - agnes-video-2.5 / 2.5-flash 的 keyframe / reference 模式必须携带 model_name，
+ *     否则查询不到任务；官方推荐所有模式都携带。
  */
 
 // 从 Agnes 响应中稳健提取视频地址。
@@ -73,7 +73,7 @@ function scanFirstVideoUrl(data: any): string | null {
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const { video_id, task_id, model_name, apiKey: clientApiKey } = query
+  const { video_id, task_id, model_name, site, apiKey: clientApiKey } = query
 
   const id = video_id || task_id
 
@@ -84,16 +84,13 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // 获取 API Key
-  const config = useRuntimeConfig()
-  const apiKey = (clientApiKey as string) || config.agnesApiKey || process.env.AGNES_API_KEY
+  // 站点与 API Key
+  const siteId = resolveAgnesSite(site)
+  const origin = agnesOrigin(siteId)
+  const apiKey = resolveAgnesApiKey(clientApiKey, siteId)
 
   if (!apiKey) {
-    throw createError({
-      statusCode: 422,
-      statusMessage: 'API_KEY_MISSING',
-      data: { error: '请在设置页面配置 Agnes API Key' }
-    })
+    throwApiKeyMissing()
   }
 
   // 设置 15 秒超时（轮询接口应快速响应）
@@ -105,7 +102,7 @@ export default defineEventHandler(async (event) => {
     if (model_name && typeof model_name === 'string' && model_name.trim()) {
       params.set('model_name', model_name.trim())
     }
-    const url = `https://apihub.agnes-ai.com/agnesapi?${params.toString()}`
+    const url = `${origin}/agnesapi?${params.toString()}`
 
     console.log('[Video] Polling status for:', id, params.get('model_name') ? `(model_name=${params.get('model_name')})` : '')
 

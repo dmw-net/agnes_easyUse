@@ -50,14 +50,24 @@ export default defineNuxtConfig({
   ],
 
   // ========== i18n 配置 (@nuxtjs/i18n v10) ==========
-  // locale 文件放在项目根目录的 i18n/ 文件夹下（模块默认读取位置）
+  // locale 文件唯一数据源：i18n/locales/*.json（模块默认读取位置）。
+  // 注意：此前项目存在 locales/ + 自定义 useLocale.ts 的第二套 i18n，
+  // 与模块的 useI18n 自动导入冲突导致新键回落为原始键路径，已删除统一到本模块。
   i18n: {
     locales: [
       { code: 'en', file: 'en.json' },
       { code: 'zh-CN', file: 'zh-CN.json' }
     ],
     defaultLocale: 'zh-CN',
-    strategy: 'no_prefix'
+    // 英文缺键时回落中文，避免界面出现原始键路径
+    fallbackLocale: 'zh-CN',
+    strategy: 'no_prefix',
+    // 语言选择持久化：写入 cookie，刷新后保持（app.vue 另做旧 localStorage 迁移）
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root'
+    }
   },
 
   // ========= Sitemap 配置 =========
@@ -81,7 +91,10 @@ export default defineNuxtConfig({
 
   // 运行时配置
   runtimeConfig: {
+    // 国际站（agnes-ai.com）服务端兜底 Key
     agnesApiKey: process.env.AGNES_API_KEY || '',
+    // 国内站（agnes-ai.cn）服务端兜底 Key
+    agnesApiKeyCn: process.env.AGNES_API_KEY_CN || '',
     public: {
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000'
     }
