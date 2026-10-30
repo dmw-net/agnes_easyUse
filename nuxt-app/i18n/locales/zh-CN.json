@@ -185,7 +185,13 @@
     "modelVideo25Flash": "Agnes Video 2.5 Flash（限时免费）",
     "modelVideo25Full": "Agnes Video 2.5（按分辨率计费）",
     "modelText25": "Agnes 2.5 Flash（文本 · 免费）",
-    "modelText30": "Agnes 3.0 Flash（文本 · 免费）"
+    "modelText30": "Agnes 3.0 Flash（文本 · 免费）",
+    "siteKeyStatus": "双站点密钥状态",
+    "siteShortCom": "国际站",
+    "siteShortCn": "国内站",
+    "removeKey": "清除",
+    "removeKeyConfirm": "确定要清除该站点的 API Key 吗？",
+    "keyNotSet": "未配置 Key"
   },
   "sponsor": {
     "title": "☕ 赞赏支持",

@@ -104,24 +104,66 @@
         </p>
       </div>
 
-      <!-- 已配置的模型 -->
+      <!-- 双站点密钥状态：一眼看清两个站点各自是否保存了 Key -->
+      <div class="mt-8">
+        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white/90" style="font-family: 'Inter', sans-serif;">{{ t('settings.siteKeyStatus') || '双站点密钥状态' }}</h3>
+        <div class="space-y-3">
+          <div
+            v-for="s in siteKeySummary"
+            :key="s.value"
+            class="p-4 rounded-xl border bg-white/80 dark:bg-white/[0.01] flex justify-between items-center gap-3 transition-colors duration-300"
+            :class="s.hasKey ? 'border-emerald-400/30' : 'border-gray-200/50 dark:border-white/3'"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <span
+                class="shrink-0 w-2.5 h-2.5 rounded-full"
+                :class="s.hasKey ? 'bg-emerald-500' : 'bg-amber-400'"
+              ></span>
+              <div class="min-w-0">
+                <div class="font-semibold text-gray-900 dark:text-white/90 truncate" style="font-family: 'Inter', sans-serif;">{{ s.label }}</div>
+                <div class="text-xs text-gray-400 dark:text-white/40 mt-0.5 truncate font-mono">{{ s.keyPreview || t('settings.keyNotSet') || '未配置 Key' }}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span
+                class="text-sm font-medium"
+                :class="s.hasKey ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'"
+              >{{ s.hasKey ? t('settings.configured') : t('settings.notConfigured') }}</span>
+              <button
+                v-if="s.hasKey"
+                @click="removeKeyFor(s.value)"
+                class="px-2.5 py-1 rounded-lg text-xs border border-red-500/30 text-red-500 dark:text-red-400 hover:bg-red-500/10 transition"
+              >{{ t('settings.removeKey') || '清除' }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已配置的模型：每行展示两站点的独立密钥状态 -->
       <div class="mt-8">
         <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white/90" style="font-family: 'Inter', sans-serif;">{{ t('settings.configuredModels') }}</h3>
         <div class="space-y-3">
           <div
             v-for="model in configuredModels"
             :key="model.name"
-            class="p-4 rounded-xl border border-gray-200/50 dark:border-white/3 flex justify-between items-center bg-white/80 dark:bg-white/[0.01] transition-colors duration-300"
+            class="p-4 rounded-xl border border-gray-200/50 dark:border-white/3 flex flex-wrap justify-between items-center gap-3 bg-white/80 dark:bg-white/[0.01] transition-colors duration-300"
           >
-            <div>
+            <div class="min-w-0">
               <div class="font-semibold text-gray-900 dark:text-white/90" style="font-family: 'Inter', sans-serif;">{{ model.label }}</div>
               <div class="text-sm text-gray-400 dark:text-white/40 mt-1">{{ model.name }}</div>
             </div>
-            <div
-              :class="model.configured ? 'text-green-500 dark:text-green-400' : 'text-yellow-500 dark:text-yellow-400'"
-              class="text-sm font-medium"
-            >
-              {{ model.configured ? t('settings.configured') : t('settings.notConfigured') }}
+            <div class="flex items-center gap-2 shrink-0">
+              <span
+                v-for="site in SITE_IDS"
+                :key="site"
+                class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors"
+                :class="siteKeyStatus[site]
+                  ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
+                  : 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/25'"
+                >
+                  {{ site === 'com' ? (t('settings.siteShortCom') || '国际站') : (t('settings.siteShortCn') || '国内站') }}
+                  {{ siteKeyStatus[site] ? ' ✓' : ' —' }}
+                </span>
             </div>
           </div>
         </div>
@@ -285,7 +327,7 @@ useHead({
 import { useApiKey, type AgnesSite } from '~/composables/useApiKey'
 
 const { t, locale } = useI18n()
-const { setSite, setSiteKey, getSiteKey, getSite, hasSiteKey } = useApiKey()
+const { setSite, setSiteKey, getSiteKey, getSite, hasSiteKey, removeSiteKey } = useApiKey()
 
 // ========= 站点 =========
 // 国际站（agnes-ai.com）与国内站（agnes-ai.cn）账号体系与 API Key 相互独立
@@ -342,6 +384,36 @@ const saveSiteKey = () => {
   setTimeout(() => { savedMessage.value = '' }, 3000)
 }
 
+// 清除某站点的 Key
+const removeKeyFor = (site: AgnesSite) => {
+  if (!confirm((t('settings.removeKeyConfirm') || '确定要清除该站点的 API Key 吗？') + `\n${site === 'cn' ? t('settings.siteCn') : t('settings.siteCom')}`)) return
+  removeSiteKey(site)
+  siteKeys[site] = ''
+}
+
+// 各站点 Key 的实时状态（响应式，保存/清除后自动刷新）
+const siteKeyStatus = computed<Record<AgnesSite, boolean>>(() => ({
+  com: hasSiteKey('com'),
+  cn: hasSiteKey('cn')
+}))
+
+// Key 脱敏预览（sk-abc1…xyz9），仅展示前后各 4 位
+const keyPreview = (site: AgnesSite): string => {
+  const key = getSiteKey(site)
+  if (!key) return ''
+  if (key.length <= 12) return key
+  return `${key.slice(0, 6)}…${key.slice(-4)}`
+}
+
+// 双站点密钥状态摘要
+const siteKeySummary = computed(() => [
+  { value: 'com' as AgnesSite, label: t('settings.siteCom'), keyPreview: keyPreview('com'), hasKey: siteKeyStatus.value.com },
+  { value: 'cn' as AgnesSite,  label: t('settings.siteCn'),  keyPreview: keyPreview('cn'),  hasKey: siteKeyStatus.value.cn }
+])
+
+// 模板用的站点顺序常量
+const SITE_IDS: AgnesSite[] = ['com', 'cn']
+
 // 赞赏码相关
 const sponsorWechatOk = ref(false)
 const sponsorAlipayOk = ref(false)
@@ -396,47 +468,17 @@ const securityTips = computed(() => {
   ]
 })
 
-// 已配置的模型列表（与官方文档当前在售 lineup 保持一致）
-const configuredModels = computed(() => {
-  const configured = hasSiteKey(activeSite.value)
-  return [
-    {
-      label: t('settings.modelImage25'),
-      name: 'agnes-image-2.5-flash',
-      configured
-    },
-    {
-      label: t('settings.modelImage21'),
-      name: 'agnes-image-2.1-flash',
-      configured
-    },
-    {
-      label: t('settings.modelImage20'),
-      name: 'agnes-image-2.0-flash',
-      configured
-    },
-    {
-      label: t('settings.modelVideo25Flash'),
-      name: 'agnes-video-2.5-flash',
-      configured
-    },
-    {
-      label: t('settings.modelVideo25Full'),
-      name: 'agnes-video-2.5',
-      configured
-    },
-    {
-      label: t('settings.modelText25'),
-      name: 'agnes-2.5-flash',
-      configured
-    },
-    {
-      label: t('settings.modelText30'),
-      name: 'agnes-3.0-flash',
-      configured
-    }
-  ]
-})
+// 已配置的模型列表（与官方文档当前在售 lineup 保持一致；
+// 每站密钥状态由模型行上的双站点 chips 单独展示）
+const configuredModels = computed(() => [
+  { label: t('settings.modelImage25'), name: 'agnes-image-2.5-flash' },
+  { label: t('settings.modelImage21'), name: 'agnes-image-2.1-flash' },
+  { label: t('settings.modelImage20'), name: 'agnes-image-2.0-flash' },
+  { label: t('settings.modelVideo25Flash'), name: 'agnes-video-2.5-flash' },
+  { label: t('settings.modelVideo25Full'), name: 'agnes-video-2.5' },
+  { label: t('settings.modelText25'), name: 'agnes-2.5-flash' },
+  { label: t('settings.modelText30'), name: 'agnes-3.0-flash' }
+])
 
 onMounted(() => {
   checkSponsorImages()

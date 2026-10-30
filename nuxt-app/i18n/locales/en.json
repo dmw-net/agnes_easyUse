@@ -184,7 +184,13 @@
     "modelVideo25Flash": "Agnes Video 2.5 Flash (limited-time free)",
     "modelVideo25Full": "Agnes Video 2.5 (billed by resolution)",
     "modelText25": "Agnes 2.5 Flash (Text · free)",
-    "modelText30": "Agnes 3.0 Flash (Text · free)"
+    "modelText30": "Agnes 3.0 Flash (Text · free)",
+    "siteKeyStatus": "API Key Status by Site",
+    "siteShortCom": "Global",
+    "siteShortCn": "China",
+    "removeKey": "Clear",
+    "removeKeyConfirm": "Clear the API Key for this site?",
+    "keyNotSet": "No key configured"
   },
   "sponsor": {
     "title": "☕ Sponsor",
