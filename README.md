@@ -1,5 +1,7 @@
 # Agnes Easy Use
 
+> **语言 / Language**：[简体中文](README.md) · [English](README.en.md)
+
 一个开箱即用的 Agnes AI 可视化创作工具，集成图片生成、视频生成和提示词优化能力，同时支持 **Agnes 国际站（agnes-ai.com）** 与 **国内站（agnes-ai.cn）** 双站点切换。
 
 本项目完全免费、开源、可自部署。你只需要填入自己的 Agnes API Key，就可以在网页里直接使用 Agnes 的图片、视频和文本能力，不需要自己手写接口请求。
